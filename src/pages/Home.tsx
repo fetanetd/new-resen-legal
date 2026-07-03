@@ -11,7 +11,7 @@ import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,31 +34,48 @@ export default function Home() {
 
   const homeStructuredData = {
     "@context": "https://schema.org",
-    "@type": "LegalService",
-    "name": "Resen Legal & Consultancy",
-    "url": "https://resenlegal.com",
-    "logo": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1782769600/last_t2oqne.png",
-    "description": "Expert legal consultancy specializing in Immigration Law, Corporate Law, and GDPR. Resen Legal & Consultancy provides professional advice for international and local legal matters.",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Istanbul",
-      "addressCountry": "TR"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+90 546 796 28 54",
-      "contactType": "customer service",
-      "email": "info@resenlegal.com"
-    },
-    "sameAs": [
-      "https://www.linkedin.com/company/resenlegal"
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://resenlegal.com/#website",
+        "name": "Resen Legal",
+        "alternateName": ["Resen Legal & Consultancy", "Resen"],
+        "url": "https://resenlegal.com/"
+      },
+      {
+        "@type": "LegalService",
+        "@id": "https://resenlegal.com/#organization",
+        "name": "Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/",
+        "logo": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1782769600/last_t2oqne.png",
+        "description": "Expert legal consultancy specializing in Immigration Law, Corporate Law, and GDPR. Resen Legal & Consultancy provides professional advice for international and local legal matters.",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Istanbul",
+          "addressCountry": "TR"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+90 546 796 28 54",
+          "contactType": "customer service",
+          "email": "info@resenlegal.com"
+        },
+        "sameAs": [
+          "https://www.linkedin.com/company/resenlegal"
+        ]
+      }
     ]
   };
+
+  const homeTitle = i18n.language === 'en' 
+    ? 'Resen Legal & Consultancy | We handle the matters that matter.' 
+    : `Resen Legal & Consultancy | ${t('hero.slogan')}`;
 
   return (
     <div className="min-h-screen">
       <SEO 
-        title={t('hero.slogan')}
+        title={homeTitle}
+        disableSuffix={true}
         description={`${t('hero.subtext')} Explore our specialized legal services in immigration, corporate law, and GDPR compliance.`}
         keywords="legal services, immigration law, corporate legal counsel, GDPR compliance, Turkish law, international legal consultancy"
         image="https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80"

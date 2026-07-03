@@ -17,6 +17,7 @@ interface SEOProps {
   structuredData?: any;
   isBlogDetail?: boolean;
   lang?: string;
+  disableSuffix?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -31,7 +32,8 @@ const SEO: React.FC<SEOProps> = ({
   canonical,
   structuredData,
   isBlogDetail,
-  lang
+  lang,
+  disableSuffix
 }) => {
   const { i18n } = useTranslation();
   const [dynamicSettings, setDynamicSettings] = useState<any>(null);
@@ -51,7 +53,7 @@ const SEO: React.FC<SEOProps> = ({
   }, []);
 
   const siteName = dynamicSettings?.title || 'Resen Legal & Consultancy';
-  const fullTitle = title ? `${title} | ${siteName}` : siteName;
+  const fullTitle = disableSuffix ? (title || siteName) : (title ? `${title} | ${siteName}` : siteName);
   const defaultDescription = dynamicSettings?.description || 'Expert legal consultancy specializing in Immigration Law, Corporate Law, and GDPR. Resen Legal & Consultancy provides professional advice for international and local legal matters.';
   const metaDescription = description || defaultDescription;
   const baseUrl = 'https://resenlegal.com';
