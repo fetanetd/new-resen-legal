@@ -1,0 +1,6 @@
+{
+  "name": "Resen Legal & Consultancy",
+  "description": "Expert legal consultancy specializing in Immigration Law, Corporate Law, and GDPR. Resen Legal & Consultancy provides professional advice for international and local legal matters with a commitment to excellence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

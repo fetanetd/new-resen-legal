@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isServerTimestamp(field) {
+      return field == request.time;
+    }
+
+    // contactMessages Validation
+    function isValidContactMessage(data) {
+      return data.keys().hasAll(['name', 'email', 'department', 'message', 'createdAt'])
+        && data.keys().size() == 5
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 150 && data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+        && data.department is string && data.department.size() >= 2 && data.department.size() <= 100
+        && data.message is string && data.message.size() >= 5 && data.message.size() <= 5000
+        && isServerTimestamp(data.createdAt);
+    }
+
+    match /contactMessages/{messageId} {
+      allow create: if isValidContactMessage(incoming());
+      // No read/update/delete for the public
+    }
+  }
+}

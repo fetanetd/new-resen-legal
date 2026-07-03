@@ -1,0 +1,177 @@
+{
+  "entities": {
+    "activityLog": {
+      "title": "Activity Log",
+      "description": "System-wide activity logs for auditing administrative actions.",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["adminId", "adminEmail", "action", "targetType", "timestamp"]
+    },
+    "appSettings": {
+      "title": "App Settings",
+      "description": "Global application configuration including SEO and site-wide metadata.",
+      "type": "object",
+      "properties": {
+        "seo": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "keywords": { "type": "string" }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "teamMember": {
+      "title": "Team Member",
+      "description": "Professional profile of a team member.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "object", "description": "Localized map of roles." },
+        "bio": { "type": "object", "description": "Localized map of bio." },
+        "image": { "type": "string" },
+        "social": {
+          "type": "object",
+          "properties": {
+            "linkedin": { "type": "string" },
+            "twitter": { "type": "string" }
+          }
+        },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "role", "image"]
+    },
+    "legalService": {
+      "title": "Legal Service",
+      "description": "Details of a legal service or practice area offered by the firm.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "object" },
+        "description": { "type": "object" },
+        "fullDescription": { "type": "object" },
+        "icon": { "type": "string", "description": "Lucide icon name." },
+        "expertise": { "type": "array", "items": { "type": "string" } },
+        "order": { "type": "number" }
+      },
+      "required": ["title", "description", "icon"]
+    },
+    "contactMessages": {
+      "title": "Contact Messages",
+      "description": "Messages sent via the contact form on the website.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The sender's full name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The sender's email address."
+        },
+        "department": {
+          "type": "string",
+          "description": "The legal department the message is intended for."
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the message was created."
+        }
+      },
+      "required": ["name", "email", "department", "message", "createdAt"]
+    },
+    "blogPost": {
+      "title": "Blog Post",
+      "description": "A single blog article.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "object",
+          "description": "Localized map of post titles (e.g., {en: 'Title', tr: 'Baslik'})."
+        },
+        "excerpt": {
+          "type": "object",
+          "description": "Localized map of post excerpts."
+        },
+        "content": {
+          "type": "object",
+          "description": "Localized map of post content."
+        },
+        "image": {
+          "type": "string",
+          "description": "URL of the post cover image."
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Publication date."
+        },
+        "category": {
+          "type": "string",
+          "description": "Post category."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "ID of the team member who wrote the post."
+        }
+      },
+      "required": ["title", "excerpt", "content", "image", "date", "category"]
+    },
+    "sitemapLog": {
+      "title": "Sitemap Log",
+      "description": "Log of sitemap XML generation or indexing events.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["success", "failed"] },
+        "urlsCount": { "type": "number" },
+        "triggeredBy": { "type": "string" }
+      },
+      "required": ["timestamp", "status", "urlsCount", "triggeredBy"]
+    }
+  },
+  "firestore": {
+    "contactMessages": {
+      "schema": "contactMessages",
+      "description": "Collection storing contact form submissions."
+    },
+    "services": {
+      "schema": "legalService",
+      "description": "Collection storing legal services."
+    },
+    "blog": {
+      "schema": "blogPost",
+      "description": "Collection storing blog posts."
+    },
+    "team": {
+      "schema": "teamMember",
+      "description": "Collection storing team members."
+    },
+    "activityLogs": {
+      "schema": "activityLog",
+      "description": "Audit trails for administrative actions."
+    },
+    "settings": {
+      "schema": "appSettings",
+      "description": "Global site settings and SEO configuration."
+    },
+    "sitemapLogs": {
+      "schema": "sitemapLog",
+      "description": "Collection storing sitemap indexing and generation logs."
+    }
+  }
+}

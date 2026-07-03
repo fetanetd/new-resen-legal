@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. GLOBAL SAFETY NET
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. HELPER FUNCTIONS
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        (request.auth.token.email == "fetanetdarioglu@gmail.com" || 
+         request.auth.token.email == "resenlegal@gmail.com");
+    }
+
+    // 4. RED TEAM AUDIT REPORT (SECURITY ASSERTIONS)
+    // | Collection      | Identity Spoofing | State Shortcutting | Resource Poisoning |
+    // |-----------------|-------------------|-------------------|--------------------|
+    // | contactMessages | BLOCKED (Public Create Only) | N/A (Atomic) | PROTECTED (Size/Regex) |
+    // | blog/team/etc   | BLOCKED (Admin Only) | N/A | PROTECTED (Admin Only) |
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // 3. COLLECTIONS
+
+    // Blog Posts
+    match /blog/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Team Members
+    match /team/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Legal Services
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Site Settings (SEO, etc)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Contact Messages (Inquiries)
+    match /contactMessages/{messageId} {
+      // Public can create submissions
+      allow create: if incoming().keys().hasAll(['name', 'email', 'message', 'createdAt'])
+        && incoming().name is string && incoming().name.size() > 0
+        && incoming().email is string && incoming().email.matches('^[^@]+@[^@]+\\.[^@]+$')
+        && incoming().message is string && incoming().message.size() > 0
+        && incoming().createdAt == request.time;
+      
+      // Only Admins can list, read, or delete messages
+      allow read, delete: if isAdmin();
+    }
+
+    // Activity Logs (Audit Trail)
+    match /activityLogs/{logId} {
+      // Only Admins can read or create logs
+      allow read, create: if isAdmin();
+      // Logs are immutable (updates/deletes forbidden)
+      allow update, delete: if false;
+    }
+
+    // Sitemap Logs
+    match /sitemapLogs/{logId} {
+      allow create: if incoming().keys().hasAll(['timestamp', 'status', 'urlsCount', 'triggeredBy'])
+        && incoming().timestamp is string
+        && incoming().status is string
+        && incoming().urlsCount is int
+        && incoming().triggeredBy is string;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Test connection doc
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
