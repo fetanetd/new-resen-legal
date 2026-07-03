@@ -301,6 +301,18 @@ export default function BlogPostDetail() {
     const div = document.createElement('div');
     div.innerHTML = targetContent;
 
+    // Convert any h1 inside the blog content to h2 for semantic SEO (avoiding duplicate H1s on the page),
+    // while copying all styles, classes, and attributes to maintain identical styling.
+    const innerH1s = Array.from(div.querySelectorAll('h1'));
+    innerH1s.forEach((h1) => {
+      const h2 = document.createElement('h2');
+      Array.from(h1.attributes).forEach(attr => {
+        h2.setAttribute(attr.name, attr.value);
+      });
+      h2.innerHTML = h1.innerHTML;
+      h1.replaceWith(h2);
+    });
+
     // Clean up any nested layout cards/containers in the database HTML (e.g., main, article, section, div wrapper containers)
     // to preserve a clean, natural flow without gray bg, nested card borders/shadows, and boxed styling.
     const wrappingContainers = Array.from(div.querySelectorAll('main, article, section, div'));
