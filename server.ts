@@ -685,7 +685,7 @@ async function startServer() {
             const postCategory = post.category || "Legal Insights";
             const postDate = post.date || "2026-06-16";
             const postKeywords = post.seoKeywords ? `${postTitle}, ${postCategory}, ${post.seoKeywords}` : `${postTitle}, ${postCategory}, legal insights, blog`;
-            const postImage = post.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783074107/WhatsApp_Image_2026-07-02_at_16.29.53_fsx9mp.jpg";
+            const postImage = post.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg";
             const postCanonical = `https://resenlegal.com/blog/${getPostSlug(post)}`;
 
             // Create Article Schema

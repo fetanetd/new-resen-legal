@@ -58,7 +58,7 @@ const SEO: React.FC<SEOProps> = ({
   const metaDescription = description || defaultDescription;
   const baseUrl = 'https://resenlegal.com';
   const pageUrl = canonical ? `${baseUrl}${canonical}` : baseUrl;
-  const metaImage = image || 'https://res.cloudinary.com/dlrsifk2y/image/upload/v1783074107/WhatsApp_Image_2026-07-02_at_16.29.53_fsx9mp.jpg';
+  const metaImage = image || 'https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg';
   const defaultKeywords = dynamicSettings?.keywords || 'legal consultancy, immigration lawyer, corporate law Turkey, GDPR compliance, Resen Legal';
   const metaKeywords = keywords ? `${keywords}, ${defaultKeywords}` : defaultKeywords;
 
