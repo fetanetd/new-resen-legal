@@ -250,8 +250,14 @@ async function main() {
     html = html.replace(/<meta data-static="true" property="twitter:url" content="[^"]*"\s*\/?>/, `<meta property="twitter:url" content="${postCanonical}" />`);
     html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${postImage}" />`);
     
-    // Inject custom script and canonical tags to closing </head>
-    html = html.replace('</head>', `<link rel="canonical" href="${postCanonical}" />\n<script type="application/ld+json">${JSON.stringify(articleStructuredData)}</script>\n</head>`);
+    // Replace the default canonical tag
+    if (html.includes('<link rel="canonical" href="https://resenlegal.com/" />')) {
+      html = html.replace('<link rel="canonical" href="https://resenlegal.com/" />', `<link rel="canonical" href="${postCanonical}" />`);
+    } else {
+      html = html.replace('</head>', `<link rel="canonical" href="${postCanonical}" />\n</head>`);
+    }
+    // Inject custom structured data script
+    html = html.replace('</head>', `<script type="application/ld+json">${JSON.stringify(articleStructuredData)}</script>\n</head>`);
     
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
@@ -319,8 +325,12 @@ async function main() {
     html = html.replace(/<meta data-static="true" property="twitter:url" content="[^"]*"\s*\/?>/, `<meta property="twitter:url" content="${serviceCanonical}" />`);
     html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${serviceImage}" />`);
     
-    // Inject custom script and canonical tags to closing </head>
-    html = html.replace('</head>', `<link rel="canonical" href="${serviceCanonical}" />\n</head>`);
+    // Replace the default canonical tag
+    if (html.includes('<link rel="canonical" href="https://resenlegal.com/" />')) {
+      html = html.replace('<link rel="canonical" href="https://resenlegal.com/" />', `<link rel="canonical" href="${serviceCanonical}" />`);
+    } else {
+      html = html.replace('</head>', `<link rel="canonical" href="${serviceCanonical}" />\n</head>`);
+    }
     
     // Bullets translation or fallback
     const bulletsList = service.bullets?.en || [
@@ -361,6 +371,79 @@ async function main() {
       fs.mkdirSync(serviceDir, { recursive: true });
     }
     fs.writeFileSync(path.join(serviceDir, "index.html"), html, "utf-8");
+  }
+
+  // Prerender 4 static pages
+  console.log("Prerendering static pages (/about, /team, /services, /blog)...");
+  const staticPages = [
+    {
+      path: "about",
+      title: "About Us | Resen Legal & Consultancy",
+      description: "Learn more about Resen Legal & Consultancy, our mission, values, and the expert legal team dedicated to providing excellence in legal practice.",
+      keywords: "about Resen Legal, legal mission, legal values, expert lawyers, legal excellence Turkey",
+      canonical: "https://resenlegal.com/about",
+      image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80",
+    },
+    {
+      path: "team",
+      title: "Our Team | Resen Legal & Consultancy",
+      description: "Meet our expert team of legal professionals at Resen Legal & Consultancy. Excellence, diversity, and commitment to client success.",
+      keywords: "legal team, expert lawyers, immigration lawyers, corporate law experts Turkey, Resen Legal team",
+      canonical: "https://resenlegal.com/team",
+      image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80",
+    },
+    {
+      path: "services",
+      title: "Services | Resen Legal & Consultancy",
+      description: "Explore our wide range of specialized legal services including immigration law, corporate consultancy, intellectual property, and GDPR compliance.",
+      keywords: "legal services, immigration consultancy, corporate law, GDPR compliance, intellectual property law Turkey",
+      canonical: "https://resenlegal.com/services",
+      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80",
+    },
+    {
+      path: "blog",
+      title: "Blog | Resen Legal & Consultancy",
+      description: "Stay updated with the latest legal insights, advisory, and professional commentary from our experts at Resen Legal & Consultancy.",
+      keywords: "legal blog, law updates, legal insights, immigration news, corporate law articles, GDPR advice",
+      canonical: "https://resenlegal.com/blog",
+      image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80",
+    }
+  ];
+
+  for (const page of staticPages) {
+    let html = htmlTemplate;
+    const fullTitle = page.title;
+    
+    // Replace Head elements with dynamic properties
+    html = html.replace(/<title data-static="true">.*?<\/title>/, `<title>${fullTitle}</title>`);
+    html = html.replace(/<meta data-static="true" name="title" content="[^"]*"\s*\/?>/, `<meta name="title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" name="description" content="[^"]*"\s*\/?>/, `<meta name="description" content="${page.description.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" name="keywords" content="[^"]*"\s*\/?>/, `<meta name="keywords" content="${page.keywords.replace(/"/g, '&quot;')}" />`);
+    
+    html = html.replace(/<meta data-static="true" property="og:type" content="[^"]*"\s*\/?>/, `<meta property="og:type" content="website" />`);
+    html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${page.description.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${page.canonical}" />`);
+    html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${page.image}" />`);
+    
+    html = html.replace(/<meta data-static="true" property="twitter:title" content="[^"]*"\s*\/?>/, `<meta property="twitter:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" property="twitter:description" content="[^"]*"\s*\/?>/, `<meta property="twitter:description" content="${page.description.replace(/"/g, '&quot;')}" />`);
+    html = html.replace(/<meta data-static="true" property="twitter:url" content="[^"]*"\s*\/?>/, `<meta property="twitter:url" content="${page.canonical}" />`);
+    html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${page.image}" />`);
+    
+    // Replace the default canonical tag
+    if (html.includes('<link rel="canonical" href="https://resenlegal.com/" />')) {
+      html = html.replace('<link rel="canonical" href="https://resenlegal.com/" />', `<link rel="canonical" href="${page.canonical}" />`);
+    } else {
+      html = html.replace('</head>', `<link rel="canonical" href="${page.canonical}" />\n</head>`);
+    }
+
+    // Write out to dist/:path/index.html
+    const pageDir = path.join(distPath, page.path);
+    if (!fs.existsSync(pageDir)) {
+      fs.mkdirSync(pageDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(pageDir, "index.html"), html, "utf-8");
   }
 
   // Generate sitemap.xml
