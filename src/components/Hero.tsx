@@ -89,8 +89,8 @@ export default function Hero() {
             <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/40 to-transparent" />
           </div>
           {/* Floating Accent */}
-          <div className="absolute -bottom-6 inset-inline-start-[-1.5rem] bg-brand-gold p-8 rounded-sm shadow-2xl hidden md:block">
-            <div className="text-white font-serif italic text-2xl">
+          <div className="absolute bottom-0 inset-inline-start-0 bg-brand-gold py-4 px-6 rounded-sm shadow-2xl hidden md:block text-center min-w-[220px]">
+            <div className="text-white font-serif italic text-xl md:text-2xl text-center">
               {t('hero.floatingAccent')}
             </div>
           </div>

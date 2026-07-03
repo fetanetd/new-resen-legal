@@ -89,7 +89,7 @@ const resources = {
         subtext: 'High-end legal consultancy delivering precise solutions for immigration, corporate, and GDPR challenges.',
         cta: 'Book a Consultation',
         secondaryCta: 'Explore Our Services',
-        floatingAccent: 'Excellence in Legal Practice',
+        floatingAccent: 'Trusted Legal Guidance',
       },
       form: {
         title: 'Direct advice from lawyers who know the law and the land.',
@@ -310,7 +310,7 @@ const resources = {
         subtext: 'Göçmenlik, kurumsal ve GDPR zorlukları için hassas çözümler sunan üst düzey hukuk danışmanlığı.',
         cta: 'Danışmanlık Alın',
         secondaryCta: 'Hizmetlerimizi Keşfedin',
-        floatingAccent: 'Hukuk Pratiğinde Mükemmellik',
+        floatingAccent: 'Güvenilir Hukuki Rehberlik',
       },
       form: {
         title: 'Yasayı ve toprakları bilen avukatlardan doğrudan tavsiye.',
@@ -528,7 +528,7 @@ const resources = {
         subtext: 'Consultoría legal de alto nivel que ofrece soluciones precisas para desafíos de inmigración, corporativos y GDPR.',
         cta: 'Reservar una Consulta',
         secondaryCta: 'Explorar Nuestros Servicios',
-        floatingAccent: 'Excelencia en la Práctica Legal',
+        floatingAccent: 'Guía Legal Confiable',
       },
       form: {
         title: 'Asesoramiento directo de abogados que conocen la ley y el terreno.',
@@ -745,7 +745,7 @@ const resources = {
         subtext: 'استشارات قانونية راقية تقدم حلولاً دقيقة لتحديات الهجرة، والشركات، والقانون العام لحماية البيانات (GDPR).',
         cta: 'احجز استشارة',
         secondaryCta: 'استكشف خدماتنا',
-        floatingAccent: 'التميز في الممارسة القانونية',
+        floatingAccent: 'توجيه قانوني موثوق',
       },
       form: {
         title: 'نصيحة مباشرة من محامين يعرفون القانون والأرض.',
@@ -963,7 +963,7 @@ const resources = {
         subtext: '高端法律咨询，为移民、公司和 GDPR 挑战提供精确的解决方案。',
         cta: '预约咨询',
         secondaryCta: '探索我们的服务',
-        floatingAccent: '卓越的法律实践',
+        floatingAccent: '值得信赖的法律指导',
       },
       form: {
         title: '来自了解法律和当地情况的律师的直接建议。',
