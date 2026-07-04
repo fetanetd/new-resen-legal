@@ -374,7 +374,7 @@ async function main() {
   }
 
   // Prerender 4 static pages
-  console.log("Prerendering static pages (/about, /team, /services, /blog)...");
+  console.log("Prerendering static pages (/about, /team, /services, /blog, /resen-gate)...");
   const staticPages = [
     {
       path: "about",
@@ -407,6 +407,15 @@ async function main() {
       keywords: "legal blog, law updates, legal insights, immigration news, corporate law articles, GDPR advice",
       canonical: "https://resenlegal.com/blog",
       image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80",
+    },
+    {
+      path: "resen-gate",
+      title: "Resen Gate | Resen Legal & Consultancy",
+      description: "Secure administrator access panel for Resen Legal & Consultancy CMS.",
+      keywords: "admin, cms, login",
+      canonical: "https://resenlegal.com/resen-gate",
+      image: "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg",
+      robots: "noindex, nofollow",
     }
   ];
 
@@ -436,6 +445,11 @@ async function main() {
       html = html.replace('<link rel="canonical" href="https://resenlegal.com/" />', `<link rel="canonical" href="${page.canonical}" />`);
     } else {
       html = html.replace('</head>', `<link rel="canonical" href="${page.canonical}" />\n</head>`);
+    }
+
+    // Inject robots meta if configured
+    if ('robots' in page && page.robots) {
+      html = html.replace('</head>', `<meta name="robots" content="${page.robots}" />\n</head>`);
     }
 
     // Write out to dist/:path/index.html
