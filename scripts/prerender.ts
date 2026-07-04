@@ -198,7 +198,7 @@ async function main() {
     const postDate = post.date || "2026-06-16";
     const postKeywords = post.seoKeywords ? `${postTitle}, ${postCategory}, ${post.seoKeywords}` : `${postTitle}, ${postCategory}, legal insights, blog`;
     const postImage = post.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg";
-    const postCanonical = `https://resenlegal.com/blog/${slug}`;
+    const postCanonical = `https://resenlegal.com/blog/${slug}/`;
     
     // Create Article Schema
     const articleStructuredData = {
@@ -301,7 +301,7 @@ async function main() {
     let html = htmlTemplate;
     const serviceTitle = getServerTranslation(service.title, "en");
     const serviceDescription = getServerTranslation(service.description, "en");
-    const serviceCanonical = `https://resenlegal.com/service/${serviceId}`;
+    const serviceCanonical = `https://resenlegal.com/service/${serviceId}/`;
     const serviceKeywords = `${serviceTitle}, legal services, expert counsel, Resen Legal, legal consultancy`;
     const serviceImage = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80";
     
@@ -381,7 +381,7 @@ async function main() {
       title: "About Us | Resen Legal & Consultancy",
       description: "Learn more about Resen Legal & Consultancy, our mission, values, and the expert legal team dedicated to providing excellence in legal practice.",
       keywords: "about Resen Legal, legal mission, legal values, expert lawyers, legal excellence Turkey",
-      canonical: "https://resenlegal.com/about",
+      canonical: "https://resenlegal.com/about/",
       image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80",
     },
     {
@@ -389,7 +389,7 @@ async function main() {
       title: "Our Team | Resen Legal & Consultancy",
       description: "Meet our expert team of legal professionals at Resen Legal & Consultancy. Excellence, diversity, and commitment to client success.",
       keywords: "legal team, expert lawyers, immigration lawyers, corporate law experts Turkey, Resen Legal team",
-      canonical: "https://resenlegal.com/team",
+      canonical: "https://resenlegal.com/team/",
       image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80",
     },
     {
@@ -397,7 +397,7 @@ async function main() {
       title: "Services | Resen Legal & Consultancy",
       description: "Explore our wide range of specialized legal services including immigration law, corporate consultancy, intellectual property, and GDPR compliance.",
       keywords: "legal services, immigration consultancy, corporate law, GDPR compliance, intellectual property law Turkey",
-      canonical: "https://resenlegal.com/services",
+      canonical: "https://resenlegal.com/services/",
       image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80",
     },
     {
@@ -405,7 +405,7 @@ async function main() {
       title: "Blog | Resen Legal & Consultancy",
       description: "Stay updated with the latest legal insights, advisory, and professional commentary from our experts at Resen Legal & Consultancy.",
       keywords: "legal blog, law updates, legal insights, immigration news, corporate law articles, GDPR advice",
-      canonical: "https://resenlegal.com/blog",
+      canonical: "https://resenlegal.com/blog/",
       image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80",
     },
     {
@@ -413,7 +413,7 @@ async function main() {
       title: "Resen Gate | Resen Legal & Consultancy",
       description: "Secure administrator access panel for Resen Legal & Consultancy CMS.",
       keywords: "admin, cms, login",
-      canonical: "https://resenlegal.com/resen-gate",
+      canonical: "https://resenlegal.com/resen-gate/",
       image: "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg",
       robots: "noindex, nofollow",
     }
@@ -464,22 +464,22 @@ async function main() {
   console.log("Generating sitemap.xml at build-time...");
   const staticUrls = [
     "https://resenlegal.com/",
-    "https://resenlegal.com/about",
-    "https://resenlegal.com/services",
-    "https://resenlegal.com/team",
-    "https://resenlegal.com/blog"
+    "https://resenlegal.com/about/",
+    "https://resenlegal.com/services/",
+    "https://resenlegal.com/team/",
+    "https://resenlegal.com/blog/"
   ];
 
   const serviceUrls = [
-    "https://resenlegal.com/service/commercial-corporate-law",
-    "https://resenlegal.com/service/citizenship-immigration-law",
-    "https://resenlegal.com/service/real-estate-property-law",
-    "https://resenlegal.com/service/global-mobility-visa",
-    "https://resenlegal.com/service/inheritance-private-client",
-    "https://resenlegal.com/service/family-matrimonial-law",
-    "https://resenlegal.com/service/data-protection-law",
-    "https://resenlegal.com/service/human-rights-administrative",
-    "https://resenlegal.com/service/labor-employment-law"
+    "https://resenlegal.com/service/commercial-corporate-law/",
+    "https://resenlegal.com/service/citizenship-immigration-law/",
+    "https://resenlegal.com/service/real-estate-property-law/",
+    "https://resenlegal.com/service/global-mobility-visa/",
+    "https://resenlegal.com/service/inheritance-private-client/",
+    "https://resenlegal.com/service/family-matrimonial-law/",
+    "https://resenlegal.com/service/data-protection-law/",
+    "https://resenlegal.com/service/human-rights-administrative/",
+    "https://resenlegal.com/service/labor-employment-law/"
   ];
 
   const today = "2026-06-16";
@@ -543,7 +543,7 @@ async function main() {
   const processedSlugs = new Set<string>();
 
   allActiveSlugsSet.forEach((slug) => {
-    const locUrl = `https://resenlegal.com/blog/${slug}`;
+    const locUrl = `https://resenlegal.com/blog/${slug}/`;
     if (processedSlugs.has(locUrl)) return;
     processedSlugs.add(locUrl);
 
