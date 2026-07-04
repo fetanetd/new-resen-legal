@@ -35,4 +35,6 @@ export interface BlogPost {
   seoKeywords?: string;
   seoMeta?: string;
   metaDescription?: string;
+  imageAlt?: string;
+  metaTitle?: string;
 }

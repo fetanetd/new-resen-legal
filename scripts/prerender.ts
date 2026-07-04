@@ -228,7 +228,7 @@ async function main() {
     };
     
     const siteName = "Resen Legal & Consultancy";
-    const fullTitle = `${postTitle} | ${siteName}`;
+    const fullTitle = post.metaTitle ? post.metaTitle : `${postTitle} | ${siteName}`;
     
     // Replace page-level lang on <html> structure
     html = html.replace('<html lang="en">', `<html lang="${postLang}">`);

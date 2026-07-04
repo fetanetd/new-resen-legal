@@ -919,7 +919,7 @@ export default function BlogPostDetail() {
         }
       `}</style>
       <SEO 
-        title={postTitle}
+        title={post.metaTitle || postTitle}
         description={postMetaDescription}
         keywords={post.seoKeywords ? `${postTitle}, ${postCategory}, ${post.seoKeywords}` : `${postTitle}, ${postCategory}, legal insights, blog`}
         image={post.image}
@@ -931,6 +931,7 @@ export default function BlogPostDetail() {
         canonical={`/blog/${getPostSlug(post)}`}
         structuredData={articleStructuredData}
         lang={post.language}
+        disableSuffix={!!post.metaTitle}
       />
       
       <Navbar />
@@ -945,7 +946,7 @@ export default function BlogPostDetail() {
         <div className="relative h-[35vh] md:h-[45vh] min-h-[300px] w-full overflow-hidden blog-hero-header">
           <img 
             src={post.image || null} 
-            alt={postTitle}
+            alt={post.imageAlt || postTitle}
             className="w-full h-full object-cover animate-fade-in"
             referrerPolicy="no-referrer"
           />

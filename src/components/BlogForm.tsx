@@ -105,7 +105,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
     seoMeta: '',
     seoKeywords: '',
     language: 'tr',
-    slug: ''
+    slug: '',
+    imageAlt: '',
+    metaTitle: ''
   });
 
   const [translations, setTranslations] = useState<{
@@ -200,7 +202,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
            seoMeta: parsed.seoMeta || '',
            seoKeywords: parsed.seoKeywords || '',
            language: parsed.language || 'tr',
-           slug: parsed.slug || ''
+           slug: parsed.slug || '',
+           imageAlt: parsed.imageAlt || '',
+           metaTitle: parsed.metaTitle || ''
          });
         setHasBackup(false);
       } catch (e) {
@@ -579,7 +583,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         seoMeta: (initialData as any).seoMeta || '',
         seoKeywords: (initialData as any).seoKeywords || '',
         language: initialLang,
-        slug: initialData.slug || ''
+        slug: initialData.slug || '',
+        imageAlt: (initialData as any).imageAlt || '',
+        metaTitle: (initialData as any).metaTitle || ''
       });
       setSeoResult(null);
     } else {
@@ -596,7 +602,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         seoMeta: '',
         seoKeywords: '',
         language: 'tr',
-        slug: ''
+        slug: '',
+        imageAlt: '',
+        metaTitle: ''
       });
       setSeoResult(null);
     }
@@ -645,7 +653,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         seoKeywords: formData.seoKeywords || '',
         status: resolvedStatus,
         language: formData.language || 'tr',
-        slug: computedSlug
+        slug: computedSlug,
+        imageAlt: formData.imageAlt || '',
+        metaTitle: formData.metaTitle || ''
       };
 
       if (initialData?.id) {
@@ -812,200 +822,221 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
           )}
 
             {/* General Info */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.category')}</label>
-                <div className="relative">
-                  {isAddingCategory ? (
-                    <div className="flex gap-2 items-center">
-                      <input
-                        autoFocus
-                        type="text"
-                        placeholder={t('blogAdmin.newCategoryPlaceholder')}
-                        value={newCategory}
-                        onChange={e => setNewCategory(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.category')}</label>
+                  <div className="relative">
+                    {isAddingCategory ? (
+                      <div className="flex gap-2 items-center">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder={t('blogAdmin.newCategoryPlaceholder')}
+                          value={newCategory}
+                          onChange={e => setNewCategory(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newCategory.trim()) {
+                                setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+                                setExistingCategories(prev => [...new Set([...prev, newCategory.trim()])].sort());
+                                setIsAddingCategory(false);
+                                setNewCategory('');
+                              }
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault();
+                              setIsAddingCategory(false);
+                              setNewCategory('');
+                            }
+                          }}
+                          className="w-full border-b border-brand-gold py-2 bg-transparent outline-none transition-all font-light"
+                        />
+                        <button 
+                          type="button"
+                          onClick={() => {
                             if (newCategory.trim()) {
                               setFormData(prev => ({ ...prev, category: newCategory.trim() }));
                               setExistingCategories(prev => [...new Set([...prev, newCategory.trim()])].sort());
                               setIsAddingCategory(false);
                               setNewCategory('');
                             }
-                          } else if (e.key === 'Escape') {
-                            e.preventDefault();
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-full"
+                          title={t('blogAdmin.addNewCategory') || 'Save Category'}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => {
                             setIsAddingCategory(false);
                             setNewCategory('');
-                          }
-                        }}
-                        className="w-full border-b border-brand-gold py-2 bg-transparent outline-none transition-all font-light"
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          if (newCategory.trim()) {
-                            setFormData(prev => ({ ...prev, category: newCategory.trim() }));
-                            setExistingCategories(prev => [...new Set([...prev, newCategory.trim()])].sort());
-                            setIsAddingCategory(false);
-                            setNewCategory('');
-                          }
-                        }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-full"
-                        title={t('blogAdmin.addNewCategory') || 'Save Category'}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          setIsAddingCategory(false);
-                          setNewCategory('');
-                        }}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-full"
-                        title={t('common.cancel') || 'Cancel'}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <select
-                        required
-                        value={formData.category}
-                        onChange={e => {
-                          if (e.target.value === '__ADD_NEW_OPTION__') {
-                            setIsAddingCategory(true);
-                          } else {
-                            setFormData({ ...formData, category: e.target.value });
-                          }
-                        }}
-                        className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none"
-                      >
-                        <option value="">{t('blogAdmin.selectCategory')}</option>
-                        {existingCategories.map(cat => (
-                          <option key={cat} value={cat}>
-                            {getCategoryTranslation(cat, i18n.language, services)}
+                          }}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full"
+                          title={t('common.cancel') || 'Cancel'}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <select
+                          required
+                          value={formData.category}
+                          onChange={e => {
+                            if (e.target.value === '__ADD_NEW_OPTION__') {
+                              setIsAddingCategory(true);
+                            } else {
+                              setFormData({ ...formData, category: e.target.value });
+                            }
+                          }}
+                          className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none"
+                        >
+                          <option value="">{t('blogAdmin.selectCategory')}</option>
+                          {existingCategories.map(cat => (
+                            <option key={cat} value={cat}>
+                              {getCategoryTranslation(cat, i18n.language, services)}
+                            </option>
+                          ))}
+                          <option value="__ADD_NEW_OPTION__" className="font-bold text-brand-gold bg-brand-navy/5">
+                            + {i18n.language === 'tr' ? 'Yeni Kategori Ekle...' : 'Add New Category...'}
                           </option>
-                        ))}
-                        <option value="__ADD_NEW_OPTION__" className="font-bold text-brand-gold bg-brand-navy/5">
-                          + {i18n.language === 'tr' ? 'Yeni Kategori Ekle...' : 'Add New Category...'}
-                        </option>
-                      </select>
-                      <button 
-                        type="button"
-                        onClick={() => setIsAddingCategory(true)}
-                        className="p-2 text-brand-navy hover:text-brand-gold transition-colors block shrink-0"
-                        title={t('blogAdmin.addNewCategory')}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.author')}</label>
-                <select
-                  required
-                  value={formData.authorId}
-                  onChange={e => setFormData({ ...formData, authorId: e.target.value })}
-                  className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none"
-                >
-                  <option value="">{t('blogAdmin.selectAuthor')}</option>
-                  {teamMembers.map(member => (
-                    <option key={member.id} value={member.id}>{member.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.date')}</label>
-                <input
-                  required
-                  type="date"
-                  value={formData.date}
-                  onChange={e => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">
-                  {i18n.language === 'tr' ? 'Yayın Dili' : 'Publishing Language'}
-                </label>
-                <select
-                  required
-                  value={formData.language}
-                  onChange={e => handleLanguageChange(e.target.value)}
-                  className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none text-xs cursor-pointer"
-                >
-                  <option value="tr">TR (Türkçe)</option>
-                  <option value="en">EN (English)</option>
-                </select>
-              </div>
-              <div className="space-y-4">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.imageUrl')}</label>
-                <div className="flex gap-2">
-                  <input
-                    required
-                    type="url"
-                    placeholder="https://..."
-                    value={formData.image}
-                    onChange={e => setFormData({ ...formData, image: e.target.value })}
-                    className="flex-1 border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light"
-                  />
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowImageGallery(!showImageGallery)}
-                      className={`p-2 rounded-sm transition-all ${showImageGallery ? 'bg-brand-gold text-white' : 'text-brand-navy hover:text-brand-gold bg-brand-navy/5'}`}
-                      title={t('blogAdmin.imageGallery')}
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={autoPickImage}
-                      className="p-2 text-brand-navy hover:text-brand-gold bg-brand-navy/5 rounded-sm transition-all"
-                      title={t('blogAdmin.autoFindImage')}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </button>
+                        </select>
+                        <button 
+                          type="button"
+                          onClick={() => setIsAddingCategory(true)}
+                          className="p-2 text-brand-navy hover:text-brand-gold transition-colors block shrink-0"
+                          title={t('blogAdmin.addNewCategory')}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {showImageGallery && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="grid grid-cols-4 gap-2 pt-2 border-t border-brand-navy/5"
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.author')}</label>
+                  <select
+                    required
+                    value={formData.authorId}
+                    onChange={e => setFormData({ ...formData, authorId: e.target.value })}
+                    className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none"
                   >
-                    {CURATED_IMAGES.map((img) => (
-                      <button
-                        key={img.url}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, image: img.url }));
-                          setShowImageGallery(false);
-                        }}
-                        className={`relative aspect-video rounded-sm overflow-hidden group border-2 transition-all ${formData.image === img.url ? 'border-brand-gold' : 'border-transparent'}`}
-                      >
-                        <img 
-                          src={img.url || null} 
-                          alt={img.label} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          referrerPolicy="no-referrer"
-                        />
-                        <div className="absolute inset-0 bg-brand-navy/20 group-hover:bg-transparent transition-colors" />
-                        <div className="absolute bottom-0 left-0 right-0 p-1 bg-brand-navy/60 text-[8px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                          {img.label}
-                        </div>
-                      </button>
+                    <option value="">{t('blogAdmin.selectAuthor')}</option>
+                    {teamMembers.map(member => (
+                      <option key={member.id} value={member.id}>{member.name}</option>
                     ))}
-                  </motion.div>
-                )}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.date')}</label>
+                  <input
+                    required
+                    type="date"
+                    value={formData.date}
+                    onChange={e => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">
+                    {i18n.language === 'tr' ? 'Yayın Dili' : 'Publishing Language'}
+                  </label>
+                  <select
+                    required
+                    value={formData.language}
+                    onChange={e => handleLanguageChange(e.target.value)}
+                    className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none text-xs cursor-pointer"
+                  >
+                    <option value="tr">TR (Türkçe)</option>
+                    <option value="en">EN (English)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-4">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('blogAdmin.imageUrl')}</label>
+                  <div className="flex gap-2">
+                    <input
+                      required
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.image}
+                      onChange={e => setFormData({ ...formData, image: e.target.value })}
+                      className="flex-1 border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowImageGallery(!showImageGallery)}
+                        className={`p-2 rounded-sm transition-all ${showImageGallery ? 'bg-brand-gold text-white' : 'text-brand-navy hover:text-brand-gold bg-brand-navy/5'}`}
+                        title={t('blogAdmin.imageGallery')}
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={autoPickImage}
+                        className="p-2 text-brand-navy hover:text-brand-gold bg-brand-navy/5 rounded-sm transition-all"
+                        title={t('blogAdmin.autoFindImage')}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {showImageGallery && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="grid grid-cols-4 gap-2 pt-2 border-t border-brand-navy/5"
+                    >
+                      {CURATED_IMAGES.map((img) => (
+                        <button
+                          key={img.url}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, image: img.url }));
+                            setShowImageGallery(false);
+                          }}
+                          className={`relative aspect-video rounded-sm overflow-hidden group border-2 transition-all ${formData.image === img.url ? 'border-brand-gold' : 'border-transparent'}`}
+                        >
+                          <img 
+                            src={img.url || null} 
+                            alt={img.label} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-0 bg-brand-navy/20 group-hover:bg-transparent transition-colors" />
+                          <div className="absolute bottom-0 left-0 right-0 p-1 bg-brand-navy/60 text-[8px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            {img.label}
+                          </div>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">
+                    {i18n.language === 'tr' ? 'Görsel Alt Metni (Alt Text)' : 'Image Alt Text'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Resen Hukuk Ofisi"
+                    value={formData.imageAlt || ''}
+                    onChange={e => setFormData({ ...formData, imageAlt: e.target.value })}
+                    className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light text-xs"
+                  />
+                  <p className="text-[9px] text-brand-navy/40 font-light italic">
+                    {i18n.language === 'tr' ? 'Görselin HTML alt özelliğinde kullanılacak açıklama.' : 'HTML alt attribute description for the image.'}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -1426,6 +1457,27 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
 
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
+                          <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">
+                            {i18n.language === 'tr' ? 'Meta Başlığı (Geçersiz Kılma)' : 'Meta Title (Override)'}
+                          </label>
+                          <span className={`text-[9px] font-bold ${(formData.metaTitle || '').length >= 50 && (formData.metaTitle || '').length <= 60 ? 'text-emerald-600' : 'text-orange-500'}`}>
+                            {(formData.metaTitle || '').length} / 60 chars
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={formData.metaTitle || ''}
+                          onChange={e => setFormData({ ...formData, metaTitle: e.target.value })}
+                          className="w-full border-b border-theme-border py-2 bg-transparent focus:border-brand-gold outline-none transition-all font-light text-xs"
+                          placeholder={i18n.language === 'tr' ? 'Boş bırakılırsa başlık otomatik kullanılır...' : 'Leave empty for automatic title...'}
+                        />
+                        <p className="text-[9px] text-brand-navy/40 font-light italic">
+                          {i18n.language === 'tr' ? 'Arama sonuçlarında görünecek başlık. Boş bırakılırsa yazı başlığı kullanılır.' : 'Title shown in search results. If left empty, the post title is used.'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
                           <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">Meta-Description (Click and Edit)</label>
                           <span className={`text-[9px] font-bold ${formData.seoMeta.length >= 120 && formData.seoMeta.length <= 165 ? 'text-emerald-600' : 'text-orange-500'}`}>
                             {formData.seoMeta.length} / 160 chars
@@ -1457,7 +1509,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                           </div>
                         </div>
                         <h4 className="text-[17px] text-[#1a0dab] font-normal hover:underline cursor-pointer leading-snug mt-1 font-sans">
-                          {formData.title || 'Resen Legal Counsel Insights Title Placeholder'}
+                          {formData.metaTitle || formData.title || 'Resen Legal Counsel Insights Title Placeholder'}
                         </h4>
                         <p className="text-[12px] text-[#4d5156] leading-relaxed font-sans mt-1">
                           {formData.seoMeta || formData.excerpt || 'Write or generate customized meta description to see beautiful live Google snippets simulating how the legal community views your articles...'}
