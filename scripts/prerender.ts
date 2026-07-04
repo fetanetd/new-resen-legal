@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { BLOG_POSTS as MOCK_BLOG, SERVICES as MOCK_SERVICES } from "../src/constants/mockData";
+import { BLOG_POSTS as MOCK_BLOG, SERVICES as MOCK_SERVICES, TEAM as MOCK_TEAM } from "../src/constants/mockData";
 
 dotenv.config();
 
@@ -194,7 +194,32 @@ async function main() {
     const postTitle = getServerTranslation(post.title, postLang, post.language);
     const postExcerpt = getServerTranslation(post.excerpt, postLang, post.language);
     const postContent = getServerTranslation(post.content, postLang, post.language);
-    const postCategory = post.category || "Legal Insights";
+
+    const getPrerenderCategory = (cat: string | undefined, lang: string): string => {
+      if (!cat) return lang === "tr" ? "Hukuki Analizler" : "Legal Insights";
+      const trimmed = cat.trim().toLowerCase();
+      if (trimmed === "private international law" || trimmed === "milletlerası özel hukuk" || trimmed === "milletlerarası özel hukuk" || trimmed === "uluslararası özel hukuk") {
+        return lang === "tr" ? "Milletlerarası Özel Hukuk" : "Private International Law";
+      }
+      if (trimmed === "immigration") {
+        return lang === "tr" ? "Göç Hukuku" : "Immigration Law";
+      }
+      if (trimmed === "corporate") {
+        return lang === "tr" ? "Şirketler ve Ticaret Hukuku" : "Commercial & Corporate Law";
+      }
+      const service = mergedServices.find((srv: any) => {
+        if (!srv.title) return false;
+        return Object.values(srv.title).some(
+          (val) => typeof val === "string" && val.trim().toLowerCase() === trimmed
+        );
+      });
+      if (service && service.title) {
+        return service.title[lang] || service.title["en"] || Object.values(service.title)[0] || cat;
+      }
+      return cat;
+    };
+
+    const postCategory = getPrerenderCategory(post.category, postLang);
     const postDate = post.date || "2026-06-16";
     const postKeywords = post.seoKeywords ? `${postTitle}, ${postCategory}, ${post.seoKeywords}` : `${postTitle}, ${postCategory}, legal insights, blog`;
     const postImage = post.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg";
@@ -259,6 +284,110 @@ async function main() {
     // Inject custom structured data script
     html = html.replace('</head>', `<script type="application/ld+json">${JSON.stringify(articleStructuredData)}</script>\n</head>`);
     
+    // Select related posts (same language-aware rules as client-side BlogPostDetail.tsx)
+    const getPostLanguage = (p: any) => (p.language || "tr").toLowerCase().startsWith("en") ? "en" : "tr";
+    const otherPosts = publishedPosts.filter(p => p.id !== post.id);
+
+    let related = otherPosts
+      .filter(p => getPostLanguage(p) === postLang && p.category && post.category && p.category.trim().toLowerCase() === post.category.trim().toLowerCase())
+      .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime())
+      .slice(0, 3);
+
+    if (related.length === 0) {
+      related = otherPosts
+        .filter(p => p.category && post.category && p.category.trim().toLowerCase() === post.category.trim().toLowerCase())
+        .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime())
+        .slice(0, 3);
+    }
+
+    if (related.length === 0) {
+      related = otherPosts
+        .filter(p => getPostLanguage(p) === postLang)
+        .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime())
+        .slice(0, 2);
+    }
+
+    if (related.length === 0) {
+      related = otherPosts
+        .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime())
+        .slice(0, 2);
+    }
+
+    let relatedSectionHtml = "";
+    if (related.length > 0) {
+      const continueReadingText = postLang === "tr" ? "OKUMAYA DEVAM ET" : "CONTINUE READING";
+      const relatedInsightsText = postLang === "tr" ? "İlgili Yazılar" : "Related Insights";
+      const exploreAllPostsText = postLang === "tr" ? "Tüm yazıları keşfet" : "Explore all posts";
+      const readArticleText = postLang === "tr" ? "Makaleyi Oku" : "Read Article";
+
+      const relatedCardsHtml = related.map((rPost) => {
+        const rPostSlug = getPostSlug(rPost);
+        const rPostTitle = getServerTranslation(rPost.title, postLang, rPost.language);
+        const rPostCategory = getPrerenderCategory(rPost.category, postLang);
+        const rPostImage = rPost.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg";
+
+        let authorName = "Resen Legal Team";
+        if (rPost.authorId) {
+          if (rPost.authorId === "resen-legal") {
+            authorName = "Resen Legal";
+          } else {
+            const author = MOCK_TEAM.find((m: any) => m.id === rPost.authorId);
+            if (author) {
+              authorName = author.name;
+            }
+          }
+        }
+
+        return `
+          <article style="background-color: rgba(255, 255, 255, 0.5); border: 1px solid transparent; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1rem; display: flex; flex-direction: column; height: 100%; transition: all 0.5s ease;">
+            <a href="/blog/${rPostSlug}/" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%;">
+              <div style="aspect-ratio: 16/9; background-color: #f3f4f6; border-radius: 2px; overflow: hidden; margin-bottom: 1.5rem; position: relative;">
+                <img src="${rPostImage}" alt="${rPostTitle.replace(/"/g, '&quot;')}" style="width: 100%; height: 100%; object-fit: cover;" referrerPolicy="no-referrer" />
+              </div>
+              <div style="display: flex; flex-direction: column; flex-grow: 1;">
+                <div style="color: #BC9C53; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-bottom: 1rem;">
+                  ${rPostCategory}
+                </div>
+                <h4 style="font-size: 1.5rem; font-family: serif; color: #064E3B; margin: 0 0 1.5rem 0; line-height: 1.25;">
+                  ${rPostTitle}
+                </h4>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; margin-top: auto; border-top: 1px solid rgba(6, 78, 59, 0.05);">
+                  <div style="padding: 0.5rem 1rem; background-color: rgba(6, 78, 59, 0.05); border-radius: 2px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 900; color: #064E3B; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    ${readArticleText} →
+                  </div>
+                  <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; color: rgba(6, 78, 59, 0.4); display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="opacity: 0.5;">${postLang === "tr" ? "Yazar:" : "By"}</span>
+                    <span style="color: #064E3B;">${authorName}</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </article>
+        `;
+      }).join("");
+
+      relatedSectionHtml = `
+        <div style="margin-top: 10rem; padding-top: 5rem; border-top: 1px solid rgba(6, 78, 59, 0.05);" class="blog-related-posts">
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; margin-bottom: 4rem; max-width: 42rem; margin-left: auto; margin-right: auto; gap: 1.5rem;">
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+              <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.4em; font-weight: 500; color: #BC9C53; margin-bottom: 1rem; text-align: center;">
+                ${continueReadingText}
+              </div>
+              <h3 style="font-size: 2.25rem; font-family: serif; color: #064E3B; text-align: center; margin: 0; line-height: 1.25;">
+                ${relatedInsightsText}
+              </h3>
+            </div>
+            <a href="/blog/" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 900; color: #BC9C53; text-decoration: none; border-bottom: 1px solid rgba(188, 156, 83, 0.25); padding-bottom: 0.5rem; display: inline-block;">
+              ${exploreAllPostsText}
+            </a>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem;">
+            ${relatedCardsHtml}
+          </div>
+        </div>
+      `;
+    }
+
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
       <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
@@ -269,6 +398,7 @@ async function main() {
         <div style="font-size: 1.125rem; line-height: 1.75; color: #334155;">
           ${postContent}
         </div>
+        ${relatedSectionHtml}
       </div>
     `;
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
