@@ -265,6 +265,8 @@ async function main() {
     html = html.replace(/<meta data-static="true" name="keywords" content="[^"]*"\s*\/?>/, `<meta name="keywords" content="${postKeywords.replace(/"/g, '&quot;')}" />`);
     
     html = html.replace(/<meta data-static="true" property="og:type" content="[^"]*"\s*\/?>/, `<meta property="og:type" content="article" />`);
+    const postLocale = postLang === "tr" ? "tr_TR" : "en_US";
+    html = html.replace(/<meta data-static="true" property="og:locale" content="[^"]*"\s*\/?>/, `<meta property="og:locale" content="${postLocale}" />`);
     html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${postCanonical}" />`);
@@ -445,6 +447,7 @@ async function main() {
     html = html.replace(/<meta data-static="true" name="keywords" content="[^"]*"\s*\/?>/, `<meta name="keywords" content="${serviceKeywords.replace(/"/g, '&quot;')}" />`);
     
     html = html.replace(/<meta data-static="true" property="og:type" content="[^"]*"\s*\/?>/, `<meta property="og:type" content="website" />`);
+    html = html.replace(/<meta data-static="true" property="og:locale" content="[^"]*"\s*\/?>/, `<meta property="og:locale" content="en_US" />`);
     html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${serviceDescription.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${serviceCanonical}" />`);
@@ -560,6 +563,7 @@ async function main() {
     html = html.replace(/<meta data-static="true" name="keywords" content="[^"]*"\s*\/?>/, `<meta name="keywords" content="${page.keywords.replace(/"/g, '&quot;')}" />`);
     
     html = html.replace(/<meta data-static="true" property="og:type" content="[^"]*"\s*\/?>/, `<meta property="og:type" content="website" />`);
+    html = html.replace(/<meta data-static="true" property="og:locale" content="[^"]*"\s*\/?>/, `<meta property="og:locale" content="en_US" />`);
     html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${page.description.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${page.canonical}" />`);
