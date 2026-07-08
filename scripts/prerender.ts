@@ -100,7 +100,7 @@ function formatSitemapDate(dateVal: any): string {
 }
 
 // Timeout wrap for firestore calls to ensure build never hangs
-const withTimeout = <T>(promise: Promise<T>, ms: number = 4000): Promise<T> => {
+const withTimeout = <T>(promise: Promise<T>, ms: number = 15000): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error("Firestore connection timed out"));
