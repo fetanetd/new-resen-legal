@@ -910,8 +910,34 @@ export default function AdminPortal() {
   const deleteBlogPost = async (postId: string) => {
     if (!window.confirm("Bu makaleyi sistemden kalıcı olarak kaldırmak istediğinize emin misiniz?")) return;
     try {
+      const targetPost = firestoreBlog.find(p => p.id === postId);
+      const wasPublished = (targetPost as any)?.status === 'published';
+
       await deleteDoc(doc(db, 'blog', postId));
       await logActivity('DELETE', 'blog', postId);
+
+      if (wasPublished) {
+        try {
+          const token = await user?.getIdToken();
+          if (token) {
+            fetch('/api/deploy', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(res => {
+              if (res.ok) {
+                console.log("Delete deploy trigger accepted by server.");
+              } else {
+                console.error("Delete deploy trigger rejected:", res.status);
+              }
+            }).catch(e => console.error("Error calling deploy on delete:", e));
+          }
+        } catch (tokenErr) {
+          console.error("Failed to get token for delete deploy:", tokenErr);
+        }
+        alert("Yayınlanmış makale silindi. Site yaklaşık 2 dakika içinde güncellenecek");
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `blog/${postId}`);
     }

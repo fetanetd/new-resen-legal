@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, Upload, AlertCircle, Plus, Check, User, Image as ImageIcon, Search, Sparkles, Code, Eye, Calendar, Tag, Clock, Type, BookOpen, Layers, MapPin } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
 import { collection, addDoc, doc, setDoc, query, getDocs } from 'firebase/firestore';
 import { BlogPost, TeamMember, Service } from '../types';
 import { TEAM as MOCK_TEAM, SERVICES as MOCK_SERVICES, BLOG_POSTS as MOCK_BLOGS } from '../constants/mockData';
@@ -658,6 +658,10 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         metaTitle: formData.metaTitle || ''
       };
 
+      const wasPublished = (initialData as any)?.status === 'published';
+      const isPublished = resolvedStatus === 'published';
+      const shouldTriggerDeploy = isPublished || (wasPublished && !isPublished);
+
       if (initialData?.id) {
         // Edit mode
         const postRef = doc(db, 'blog', initialData.id);
@@ -669,6 +673,38 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
       }
       
       localStorage.removeItem('resen_blog_temp_backup');
+
+      if (shouldTriggerDeploy) {
+        const user = auth.currentUser;
+        if (user) {
+          user.getIdToken().then(token => {
+            fetch('/api/deploy', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(res => {
+              if (res.ok) {
+                console.log("Deploy trigger accepted by server successfully.");
+              } else {
+                res.json().then(data => {
+                  console.error("Deploy trigger failed:", data.error || res.statusText);
+                }).catch(() => {
+                  console.error("Deploy trigger failed with status:", res.status);
+                });
+              }
+            }).catch(err => {
+              console.error("Error calling deploy endpoint:", err);
+            });
+          }).catch(err => {
+            console.error("Error retrieving ID token for deploy trigger:", err);
+          });
+        } else {
+          console.warn("Deploy trigger skipped: No authenticated user");
+        }
+        alert("Yazı kaydedildi. Site yaklaşık 2 dakika içinde güncellenecek");
+      }
+
       onClose();
     } catch (err) {
       handleFirestoreError(err, initialData ? OperationType.WRITE : OperationType.CREATE, 'blog');
