@@ -32,7 +32,10 @@ service cloud.firestore {
     // Blog Posts
     match /blog/{postId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+      );
     }
 
     // Team Members
