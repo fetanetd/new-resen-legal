@@ -1,16 +1,12 @@
 interface Env {
+  ASSETS: {
+    fetch: typeof fetch;
+  };
   FIREBASE_PROJECT_ID?: string;
   ALLOWED_ADMIN_EMAILS?: string;
   CLOUDFLARE_DEPLOY_HOOK_URL?: string;
   VITE_DEPLOY_HOOK_URL?: string;
 }
-
-type PagesFunction<Env = any> = (context: {
-  request: Request;
-  env: Env;
-  params: Record<string, string>;
-  data: Record<string, any>;
-}) => Promise<Response> | Response;
 
 interface JwkCache {
   keys: any[];
@@ -71,9 +67,9 @@ async function fetchGoogleJwks(): Promise<any[]> {
   return keys;
 }
 
-export const onRequestPost: PagesFunction<Env> = async (context) => {
+async function handleDeployRequest(request: Request, env: Env): Promise<Response> {
   try {
-    const authHeader = context.request.headers.get("Authorization");
+    const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: Missing token" }),
@@ -111,7 +107,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    const projectId = context.env.FIREBASE_PROJECT_ID || "gen-lang-client-0096143143";
+    const projectId = env.FIREBASE_PROJECT_ID || "gen-lang-client-0096143143";
 
     const now = Math.floor(Date.now() / 1000);
     if (payload.iss !== `https://securetoken.google.com/${projectId}`) {
@@ -139,7 +135,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    const allowedEmailsStr = context.env.ALLOWED_ADMIN_EMAILS || "fetanetdarioglu@gmail.com,resenlegal@gmail.com";
+    const allowedEmailsStr = env.ALLOWED_ADMIN_EMAILS || "fetanetdarioglu@gmail.com,resenlegal@gmail.com";
     const allowedEmails = allowedEmailsStr.split(",").map(e => e.trim().toLowerCase());
     if (!allowedEmails.includes(payload.email.toLowerCase())) {
       return new Response(
@@ -198,7 +194,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    const deployHookUrl = context.env.CLOUDFLARE_DEPLOY_HOOK_URL || context.env.VITE_DEPLOY_HOOK_URL;
+    const deployHookUrl = env.CLOUDFLARE_DEPLOY_HOOK_URL || env.VITE_DEPLOY_HOOK_URL;
     if (!deployHookUrl) {
       return new Response(
         JSON.stringify({ error: "Configuration Error: Deploy hook URL is not configured on Cloudflare" }),
@@ -234,5 +230,52 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       JSON.stringify({ error: "Internal Server Error", details: error.message }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
+  }
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
+    const url = new URL(request.url);
+
+    // 1. Handle API Deploy request
+    if (url.pathname === "/api/deploy") {
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          }
+        });
+      }
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method not allowed" }), {
+          status: 405,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      try {
+        const response = await handleDeployRequest(request, env);
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set("Access-Control-Allow-Origin", "*");
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: newHeaders,
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+    }
+
+    // 2. Fallback to serving static assets
+    try {
+      return await env.ASSETS.fetch(request);
+    } catch (err: any) {
+      return new Response("Asset Fetch Error: " + err.message, { status: 500 });
+    }
   }
 };
