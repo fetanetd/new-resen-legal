@@ -48,6 +48,47 @@ import BlogForm from '../components/BlogForm';
 import { BlogPost, TeamMember } from '../types';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM, SERVICES as MOCK_SERVICES } from '../constants/mockData';
 
+const formatDateDMY = (dateStr: string): string => {
+  if (!dateStr) return '';
+  
+  // Try standard javascript Date parsing
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    // Check if the original string was MM-DD-YY by regex
+    const mmDdYyMatch = dateStr.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+    if (mmDdYyMatch) {
+      const [, m, dVal, y] = mmDdYyMatch;
+      const day = dVal.padStart(2, '0');
+      const month = m.padStart(2, '0');
+      const year = y.length === 2 ? `20${y}` : y;
+      return `${day}-${month}-${year}`;
+    }
+    
+    // Check if YYYY-MM-DD or standard ISO
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
+  // Fallback split parsing
+  const parts = dateStr.split(/[-/.]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD -> DD-MM-YYYY
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else {
+      // Assuming MM-DD-YY -> DD-MM-YY (or YYYY)
+      const day = parts[1].padStart(2, '0');
+      const month = parts[0].padStart(2, '0');
+      let year = parts[2];
+      if (year.length === 2) year = `20${year}`;
+      return `${day}-${month}-${year}`;
+    }
+  }
+  return dateStr;
+};
+
 type Tab = 'overview' | 'messages' | 'blog' | 'team' | 'services' | 'logs' | 'settings' | 'ai' | 'seo';
 
 const AIAssistant = ({ isSubmitting: parentSubmitting, logActivity }: { isSubmitting: boolean, logActivity: any }) => {
@@ -2498,7 +2539,7 @@ export default function AdminPortal() {
                           {findTeamMember(post.authorId, teamMembers)?.name || post.authorId || 'Anonymous'}
                         </td>
                         <td className="p-4 font-mono text-[10px] text-brand-navy/50 whitespace-nowrap">
-                          {post.date}
+                          {formatDateDMY(post.date)}
                         </td>
                         <td className="p-4 whitespace-nowrap">
                           <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-brand-navy/70">
