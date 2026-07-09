@@ -586,6 +586,16 @@ async function main() {
       html = html.replace('</head>', `<meta name="robots" content="${page.robots}" />\n</head>`);
     }
 
+    // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
+    const headingText = page.title.split(" | ")[0];
+    const bodySkeleton = `
+      <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #0f172a;">${headingText}</h1>
+        <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 1.5rem;">${page.description}</p>
+      </div>
+    `;
+    html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
+
     // Write out to dist/:path/index.html
     const pageDir = path.join(distPath, page.path);
     if (!fs.existsSync(pageDir)) {
