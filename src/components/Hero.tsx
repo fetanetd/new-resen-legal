@@ -23,7 +23,7 @@ export default function Hero() {
             animate={{ opacity: 0.6 }}
             className="text-xs uppercase tracking-[0.4em] font-medium text-brand-gold mb-6"
           >
-            Resen Legal Consultancy
+            RESEN LEGAL & CONSULTANCY
           </motion.div>
           <h1 className="text-4xl sm:text-5xl md:text-8xl font-serif leading-[0.95] md:leading-[0.9] text-brand-navy mb-8 break-words">
             {t('hero.slogan')}
