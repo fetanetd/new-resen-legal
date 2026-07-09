@@ -11,15 +11,16 @@ import './i18n'; // Initialize i18n
 import CookieConsent from './components/CookieConsent';
 import BackToTop from './components/BackToTop';
 
-// Lazy loading pages for quick initial payload delivery
-const Home = lazy(() => import('./pages/Home'));
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const ServicesPage = lazy(() => import('./pages/ServicesPage'));
-const TeamPage = lazy(() => import('./pages/TeamPage'));
-const ServiceDetail = lazy(() => import('./pages/ServiceDetail'));
+import Home from './pages/Home';
+import AboutPage from './pages/AboutPage';
+import ServicesPage from './pages/ServicesPage';
+import TeamPage from './pages/TeamPage';
+import ServiceDetail from './pages/ServiceDetail';
+import BlogPage from './pages/BlogPage';
+import BlogPostDetail from './pages/BlogPostDetail';
+
+// Keep AdminPortal lazy-loaded as it is large and private
 const AdminPortal = lazy(() => import('./pages/AdminPortal'));
-const BlogPage = lazy(() => import('./pages/BlogPage'));
-const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
 
 function PageLoader() {
   return (

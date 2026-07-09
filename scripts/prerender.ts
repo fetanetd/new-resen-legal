@@ -494,26 +494,50 @@ async function main() {
     ];
     
     const bulletsHtml = bulletsList.map((feature: string) => `
-      <div style="flex: 1; min-width: 250px; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #f8fafc; margin-bottom: 1rem; margin-right: 1rem;">
-        <span style="font-weight: 500; color: #0f172a;">✓ ${feature}</span>
+      <div class="flex-1 min-w-[250px] p-4 border border-theme-border rounded-sm bg-white shadow-sm">
+        <span class="font-medium text-brand-navy">✓ ${feature}</span>
       </div>
     `).join("");
     
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
-      <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #b45309; margin-bottom: 0.5rem;">Expert Practice Area</div>
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #0f172a;">${serviceTitle}</h1>
-        <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 1.5rem;">${serviceDescription}</p>
-        
-        <div style="display: flex; flex-wrap: wrap; margin-top: 2rem; margin-bottom: 2rem;">
-          ${bulletsHtml}
-        </div>
-        
-        <h3 style="font-size: 1.5rem; color: #0f172a; margin-top: 2rem; margin-bottom: 1rem;">Our Methodology</h3>
-        <p style="font-size: 1rem; line-height: 1.6; color: #475569;">
-          We handle the matters that matter through a rigorous, four-stage process that combines in-depth research, multi-disciplinary consultation, and aggressive advocacy. Whether you are an enterprise seeking global stability or an individual navigating life-changing transitions, our counsel is direct, diligent, and future-proof.
-        </p>
+      <div class="min-h-screen bg-bg-deep font-sans antialiased">
+        <main class="pt-24">
+          <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 opacity-20">
+              <img 
+                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80" 
+                alt="${serviceTitle}" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="relative z-10 text-center px-6">
+              <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
+                EXPERT PRACTICE AREA
+              </div>
+              <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
+                ${serviceTitle}
+              </h1>
+              <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
+            </div>
+          </div>
+          <div class="max-w-4xl mx-auto px-6 py-16">
+            <p class="text-xl text-gray-600 font-light leading-relaxed mb-8 text-center">
+              ${serviceDescription}
+            </p>
+            
+            <div class="flex flex-wrap gap-4 justify-center my-12">
+              ${bulletsHtml}
+            </div>
+            
+            <div class="mt-12">
+              <h3 class="text-2xl font-serif text-brand-navy mb-4">Our Methodology</h3>
+              <p class="text-gray-600 font-light leading-relaxed">
+                We handle the matters that matter through a rigorous, four-stage process that combines in-depth research, multi-disciplinary consultation, and aggressive advocacy. Whether you are an enterprise seeking global stability or an individual navigating life-changing transitions, our counsel is direct, diligent, and future-proof.
+              </p>
+            </div>
+          </div>
+        </main>
       </div>
     `;
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
@@ -529,11 +553,39 @@ async function main() {
   // Prerender homepage fallback skeleton in dist/index.html
   console.log("Prerendering homepage fallback skeleton in dist/index.html...");
   const homepageSkeleton = `
-      <div style="padding: 4rem 2rem; text-align: center; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
-        <div style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.15em; color: #b45309; font-weight: 600; margin-bottom: 1rem;">Resen Legal & Consultancy</div>
-        <h1 style="font-size: 3rem; font-weight: bold; line-height: 1.2; color: #0f172a; margin-bottom: 1.5rem; letter-spacing: -0.02em;">We handle the matters that matter.</h1>
-        <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 2rem;">Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.</p>
-      </div>
+    <div class="min-h-screen bg-bg-deep font-sans antialiased">
+      <section class="relative min-h-[90vh] flex items-center pt-24 overflow-hidden">
+        <div class="absolute top-20 inset-inline-end-0 w-1/2 h-full bg-brand-navy/5 -skew-x-12 -z-10"></div>
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+          <div>
+            <div class="text-xs uppercase tracking-[0.4em] font-medium text-brand-gold mb-6">
+              RESEN LEGAL & CONSULTANCY
+            </div>
+            <h1 class="text-4xl sm:text-5xl md:text-8xl font-serif leading-[0.95] md:leading-[0.9] text-brand-navy mb-8 break-words">
+              We handle the matters that matter.
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-lg mb-10 leading-relaxed font-light">
+              Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.
+            </p>
+            <div class="flex flex-col gap-4">
+              <div class="bg-brand-navy text-white px-10 py-5 rounded-sm flex items-center justify-center gap-3 font-medium tracking-wide w-full sm:w-72 shadow-xl shadow-brand-navy/10 text-center">
+                GET IN TOUCH
+              </div>
+            </div>
+          </div>
+          <div class="relative hidden lg:block">
+            <div class="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">
+              <img 
+                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop" 
+                alt="Legal Library"
+                class="w-full h-full object-cover object-center"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/40 to-transparent"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   `;
   let homepageHtml = htmlTemplate.replace('<div id="root"></div>', `<div id="root">${homepageSkeleton}</div>`);
   const homepageStructuredData = {
@@ -802,9 +854,32 @@ async function main() {
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const headingText = page.title.split(" | ")[0];
     const bodySkeleton = `
-      <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #0f172a;">${headingText}</h1>
-        <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 1.5rem;">${page.description}</p>
+      <div class="min-h-screen bg-bg-deep font-sans antialiased">
+        <main class="pt-24">
+          <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 opacity-20">
+              <img 
+                src="${page.image}" 
+                alt="${headingText}" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="relative z-10 text-center px-6">
+              <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
+                EXCELLENCE & INTEGRITY
+              </div>
+              <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
+                ${headingText}
+              </h1>
+              <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
+            </div>
+          </div>
+          <div class="max-w-4xl mx-auto px-6 py-16 text-center">
+            <p class="text-xl text-gray-600 font-light leading-relaxed mb-8">
+              ${page.description}
+            </p>
+          </div>
+        </main>
       </div>
     `;
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
