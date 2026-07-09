@@ -506,6 +506,18 @@ async function main() {
     fs.writeFileSync(path.join(serviceDir, "index.html"), html, "utf-8");
   }
 
+  // Prerender homepage fallback skeleton in dist/index.html
+  console.log("Prerendering homepage fallback skeleton in dist/index.html...");
+  const homepageSkeleton = `
+      <div style="padding: 4rem 2rem; text-align: center; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
+        <div style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.15em; color: #b45309; font-weight: 600; margin-bottom: 1rem;">Resen Legal & Consultancy</div>
+        <h1 style="font-size: 3rem; font-weight: bold; line-height: 1.2; color: #0f172a; margin-bottom: 1.5rem; letter-spacing: -0.02em;">We handle the matters that matter.</h1>
+        <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 2rem;">Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.</p>
+      </div>
+  `;
+  const homepageHtml = htmlTemplate.replace('<div id="root"></div>', `<div id="root">${homepageSkeleton}</div>`);
+  fs.writeFileSync(templatePath, homepageHtml, "utf-8");
+
   // Prerender 4 static pages
   console.log("Prerendering static pages (/about, /team, /services, /blog, /resen-gate)...");
   const staticPages = [
