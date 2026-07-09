@@ -393,7 +393,7 @@ async function main() {
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
       <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #0f172a;">${postTitle}</h1>
+        <div aria-hidden="true" style="font-size: 2.5rem; font-weight: bold; line-height: 1.2; margin-bottom: 1rem; color: #0f172a;">${postTitle}</div>
         <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
           <span>Date: ${postDate}</span> | <span>Category: ${postCategory}</span>
         </div>
