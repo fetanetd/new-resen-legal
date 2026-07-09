@@ -464,6 +464,26 @@ async function main() {
     } else {
       html = html.replace('</head>', `<link rel="canonical" href="${serviceCanonical}" />\n</head>`);
     }
+
+    // Inject Service JSON-LD Structured Data
+    const serviceStructuredData = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": serviceTitle,
+      "description": serviceDescription,
+      "provider": {
+        "@type": "LegalService",
+        "name": "Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png"
+        },
+        "telephone": "+905467962854",
+        "email": "info@resenlegal.com"
+      }
+    };
+    html = html.replace('</head>', `<script type="application/ld+json">${JSON.stringify(serviceStructuredData)}</script>\n</head>`);
     
     // Bullets translation or fallback
     const bulletsList = service.bullets?.en || [
@@ -515,7 +535,39 @@ async function main() {
         <p style="font-size: 1.25rem; line-height: 1.75; color: #334155; margin-bottom: 2rem;">Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.</p>
       </div>
   `;
-  const homepageHtml = htmlTemplate.replace('<div id="root"></div>', `<div id="root">${homepageSkeleton}</div>`);
+  let homepageHtml = htmlTemplate.replace('<div id="root"></div>', `<div id="root">${homepageSkeleton}</div>`);
+  const homepageStructuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://resenlegal.com/#website",
+        "url": "https://resenlegal.com/",
+        "name": "Resen Legal & Consultancy",
+        "description": "Premier boutique international law firm in Istanbul and London."
+      },
+      {
+        "@type": "LegalService",
+        "@id": "https://resenlegal.com/#legalservice",
+        "name": "Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png"
+        },
+        "image": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg",
+        "description": "Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.",
+        "email": "info@resenlegal.com",
+        "telephone": "+905467962854",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Istanbul",
+          "addressCountry": "TR"
+        }
+      }
+    ]
+  };
+  homepageHtml = homepageHtml.replace('</head>', `<script type="application/ld+json">${JSON.stringify(homepageStructuredData)}</script>\n</head>`);
   fs.writeFileSync(templatePath, homepageHtml, "utf-8");
 
   // Prerender 4 static pages
@@ -596,6 +648,155 @@ async function main() {
     // Inject robots meta if configured
     if ('robots' in page && page.robots) {
       html = html.replace('</head>', `<meta name="robots" content="${page.robots}" />\n</head>`);
+    }
+
+    // Inject static page JSON-LD Structured Data
+    let staticStructuredData: any = null;
+    if (page.path === "about") {
+      staticStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        "name": "About Us | Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/about/",
+        "description": page.description,
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "Resen Legal & Consultancy",
+          "url": "https://resenlegal.com/"
+        }
+      };
+    } else if (page.path === "services") {
+      staticStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Services | Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/services/",
+        "description": page.description,
+        "mainEntity": {
+          "@type": "ItemList",
+          "name": "Legal Services Catalog",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "url": "https://resenlegal.com/service/citizenship-immigration-law/",
+              "name": "Citizenship & Immigration Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "url": "https://resenlegal.com/service/commercial-corporate-law/",
+              "name": "Commercial & Corporate Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "url": "https://resenlegal.com/service/real-estate-property-law/",
+              "name": "Real Estate & Property Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "url": "https://resenlegal.com/service/global-mobility-visa/",
+              "name": "Global Mobility & Visa Services"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "url": "https://resenlegal.com/service/inheritance-private-client/",
+              "name": "Inheritance & Private Client Services"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "url": "https://resenlegal.com/service/family-matrimonial-law/",
+              "name": "Family & Matrimonial Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 7,
+              "url": "https://resenlegal.com/service/data-protection-law/",
+              "name": "Data Protection & KVKK Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 8,
+              "url": "https://resenlegal.com/service/human-rights-administrative/",
+              "name": "Human Rights & Administrative Law"
+            },
+            {
+              "@type": "ListItem",
+              "position": 9,
+              "url": "https://resenlegal.com/service/labor-employment-law/",
+              "name": "Labor & Employment Law"
+            }
+          ]
+        }
+      };
+    } else if (page.path === "team") {
+      staticStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        "name": "Our Team | Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/team/",
+        "description": page.description,
+        "mainEntity": {
+          "@type": "ItemList",
+          "name": "Legal Professionals",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "item": {
+                "@type": "Person",
+                "name": "Fetanet Darıoğlu",
+                "jobTitle": "Founder & Principal Lawyer",
+                "email": "fetanet@resenlegal.com"
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "item": {
+                "@type": "Person",
+                "name": "Yunus Emre Çakmak",
+                "jobTitle": "Senior Lawyer",
+                "email": "yunusemre@resenlegal.com"
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "item": {
+                "@type": "Person",
+                "name": "Kerim Said Akyüz",
+                "jobTitle": "Senior Lawyer",
+                "email": "kerimsaid@resenlegal.com"
+              }
+            }
+          ]
+        }
+      };
+    } else if (page.path === "blog") {
+      staticStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": "Blog | Resen Legal & Consultancy",
+        "url": "https://resenlegal.com/blog/",
+        "description": page.description,
+        "publisher": {
+          "@type": "Organization",
+          "name": "Resen Legal & Consultancy",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png"
+          }
+        }
+      };
+    }
+
+    if (staticStructuredData) {
+      html = html.replace('</head>', `<script type="application/ld+json">${JSON.stringify(staticStructuredData)}</script>\n</head>`);
     }
 
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
