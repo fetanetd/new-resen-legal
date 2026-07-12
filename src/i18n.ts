@@ -21,7 +21,7 @@ const resources = {
         backToHome: 'Back to Home',
         promptTitle: 'Need Legal Assistance?',
         promptText: 'Our expert legal consultants are ready to guide you. Contact us today for professional solutions.',
-        promptCTA: 'Get Free Consultation',
+        promptCTA: 'Book a Consultation',
       },
       accessibility: {
         serviceCard: 'Service details for {{service}}',
@@ -242,7 +242,7 @@ const resources = {
         backToHome: 'Ana Sayfaya Dön',
         promptTitle: 'Hukuki Desteğe mi İhtiyacınız Var?',
         promptText: 'Uzman hukuk danışmanlarımız size rehberlik etmeye hazır. Profesyonel çözümler için bugün bizimle iletişime geçin.',
-        promptCTA: 'Ücretsiz Danışmanlık Alın',
+        promptCTA: 'Danışmanlık Alın',
       },
       accessibility: {
         serviceCard: '{{service}} için hizmet detayları',
