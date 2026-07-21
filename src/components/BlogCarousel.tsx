@@ -127,7 +127,7 @@ export default function BlogCarousel() {
                     >
                       {/* Floating Category Badge */}
                       <div className="absolute top-0 inset-inline-start-0 z-20">
-                        <span className="bg-brand-gold text-white px-4 py-2 text-[9px] uppercase tracking-[0.2em] font-black rounded-br-sm shadow-lg group-hover:bg-brand-navy transition-colors">
+                        <span className="bg-brand-gold text-white px-2.5 py-1.5 text-[7.5px] sm:text-[8px] leading-none uppercase tracking-[0.05em] font-black rounded-br-sm shadow-lg group-hover:bg-brand-navy transition-colors whitespace-nowrap">
                           {getCategoryTranslation(post.category, i18n.language, firestoreServices)}
                         </span>
                       </div>

@@ -255,10 +255,10 @@ export default function Blog() {
                 <Link to={`/blog/${getPostSlug(post)}`} className="flex flex-col h-full cursor-pointer">
                   {/* Floating Category & Language Badge */}
                   <div className="absolute top-0 inset-inline-start-0 flex items-stretch z-10 font-sans">
-                    <span className="bg-brand-gold text-white px-4 py-2 text-[9px] uppercase tracking-[0.2em] font-black rounded-br-sm shadow-lg group-hover:bg-brand-navy transition-colors">
+                    <span className="bg-brand-gold text-white px-3 py-1.5 text-[8px] sm:text-[9px] md:text-[9.5px] leading-none uppercase tracking-[0.1em] font-black rounded-br-sm shadow-lg group-hover:bg-brand-navy transition-colors whitespace-nowrap">
                       {getCategoryTranslation(post.category, i18n.language, firestoreServices)}
                     </span>
-                    <span className="bg-brand-navy text-white px-2.5 py-2 text-[9px] font-bold shadow-lg uppercase tracking-wider rounded-br-sm ms-1 shrink-0">
+                    <span className="bg-brand-navy text-white px-2 py-1.5 text-[8px] sm:text-[9px] md:text-[9.5px] leading-none font-bold shadow-lg uppercase tracking-[0.1em] rounded-br-sm ms-1 shrink-0">
                       {post.language ? post.language.toUpperCase() : 'TR'}
                     </span>
                   </div>
