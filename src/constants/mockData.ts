@@ -366,43 +366,49 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: '1',
     title: {
-      en: 'Navigating EU Immigration Post-Brexit',
-      tr: 'Brexit Sonrası AB Göçmenliğinde Yol Almak',
-      ar: 'التنقل في الهجرة إلى الاتحاد الأوروبي بعد خروج بريطانيا',
-      es: 'Navegando la inmigración en la UE después del Brexit',
-      zh: '脱欧后的欧盟移民导航'
+      en: 'KVKK and Cross-Border Personal Data Transfers',
+      tr: 'KVKK ve Yurt Dışına Kişisel Veri Aktarımı Düzenlemeleri',
+      ar: 'قانون حماية البيانات الشخصية ونقل البيانات عبر الحدود',
+      es: 'KVKK y Transferencia Internacional de Datos Personales',
+      zh: 'KVKK 与跨境个人数据传输规程'
     },
     excerpt: {
-      en: 'A comprehensive guide to new residency requirements and mobility rights.',
-      tr: 'Yeni ikamet gereksinimleri ve hareketlilik hakları için kapsamlı bir rehber.',
-      ar: 'دليل شامل لمتطلبات الإقامة الجديدة وحقوق التنقل.',
-      es: 'Una guía completa sobre los nuevos requisitos de residencia y derechos de movilidad.',
-      zh: '关于新居留要求和流动权利的全面指南。'
+      en: 'An in-depth analysis of legal mechanisms and compliance requirements for international data transfers.',
+      tr: 'Uluslararası veri aktarımlarında hukuki mekanizmalar ve uyum gereksinimlerinin kapsamlı analizi.',
+      ar: 'تحليل عميق الآليات القانونية ومتطلبات الامتثال لنقل البيانات دولياً.',
+      es: 'Un análisis profundo de los mecanismos legales y requisitos de cumplimiento para transferencias internacionales de datos.',
+      zh: '深入分析国际数据传输的法律机制与合规要求。'
     },
-    content: { en: 'Full content here...' },
+    content: {
+      en: 'Detailed legal insights regarding data privacy compliance and cross-border data transfer protocols.',
+      tr: 'Kişisel verilerin korunması mevzuatı uyarınca yurt dışına veri aktarımı süreçleri ve hukuki uyum rehberi.'
+    },
     image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=800&auto=format&fit=crop',
-    date: '2024-05-10',
-    category: 'Immigration'
+    date: '2024-06-01',
+    category: 'Private International Law'
   },
   {
     id: '2',
     title: {
-      en: 'Corporate Governance in the Digital Age',
-      tr: 'Dijital Çağda Kurumsal Yönetişim',
-      ar: 'حورمة الشركات في العصر الرقمي',
-      es: 'Gobierno Corporativo en la Era Digital',
-      zh: '数字时代的企业治理'
+      en: 'Real Estate Acquisition and Residency Procedures for Foreign Investors in Turkey',
+      tr: 'Türkiye’de Yabancıların Gayrimenkul Edinimi ve İkamet İzni Süreçleri',
+      ar: 'إجراءات تملك العقارات والإقامة للمستثمرين الأجانب في تركيا',
+      es: 'Adquisición de Bienes Raíces y Procedimientos de Residencia para Inversores Extranjeros en Turquía',
+      zh: '外国投资者在土耳其购置房产及居留许可流程'
     },
     excerpt: {
-      en: 'Understanding the impact of AI and data privacy on board decisions.',
-      tr: 'Yapay zeka ve veri gizliliğinin yönetim kurulu kararları üzerindeki etkisini anlamak.',
-      ar: 'فهم تأثير الذكاء الاصطناعي وخصوصية البيانات على قرارات مجلس الإدارة.',
-      es: 'Entender el impacto de la IA y la privacidad de datos en las decisiones de la junta.',
-      zh: '了解人工智能和数据隐私对董事会决策的影响。'
+      en: 'Legal guide covering statutory requirements, valuation reports, and residency applications for foreign real estate buyers.',
+      tr: 'Yabancı gayrimenkul alıcıları için yasal şartlar, değerleme raporları ve ikamet başvurularını kapsayan rehber.',
+      ar: 'دليل قانوني يغطي المتطلبات القانونية وتقارير التقييم وطلبات الإقامة لمشتري العقارات الأجانب.',
+      es: 'Guía legal que cubre requisitos legales, informes de valoración y solicitudes de residencia para compradores extranjeros de bienes raíces.',
+      zh: '针对外国房产买家的法定要求、评估报告及居留申请法律指南。'
     },
-    content: { en: 'Full content here...' },
+    content: {
+      en: 'Detailed legal guide on Turkish real estate laws and foreign investment regulations.',
+      tr: 'Türkiye gayrimenkul hukuku ve yabancı yatırımcı mevzuatına ilişkin kapsamlı hukuki değerlendirme.'
+    },
     image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop',
-    date: '2024-05-12',
-    category: 'Private International Law'
+    date: '2024-06-15',
+    category: 'Foreigners & Citizenship Law'
   }
 ];
