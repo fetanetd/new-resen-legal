@@ -2346,6 +2346,55 @@ export default function AdminPortal() {
     );
   };
 
+  const handleExportBlogBackup = () => {
+    try {
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        totalPosts: firestoreBlog.length,
+        source: 'firestore-blog',
+        posts: firestoreBlog.map((post) => {
+          const formattedPost: Record<string, any> = { ...post };
+
+          const formatTimestamp = (val: any) => {
+            if (!val) return val;
+            if (typeof val.toDate === 'function') {
+              return val.toDate().toISOString();
+            }
+            if (typeof val === 'object' && typeof val.seconds === 'number') {
+              return new Date(val.seconds * 1000).toISOString();
+            }
+            return val;
+          };
+
+          if (formattedPost.createdAt) {
+            formattedPost.createdAt = formatTimestamp(formattedPost.createdAt);
+          }
+          if (formattedPost.updatedAt) {
+            formattedPost.updatedAt = formatTimestamp(formattedPost.updatedAt);
+          }
+
+          return formattedPost;
+        }),
+      };
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = `resenlegal-blog-backup-${dateStr}.json`;
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting blog backup:', err);
+    }
+  };
+
   const renderBlogDashboard = () => {
     // Merge Firestore and Mock blog posts safely
     const mergedPosts = [...firestoreBlog];
@@ -2392,16 +2441,26 @@ export default function AdminPortal() {
             <h3 className="text-xl font-serif text-brand-navy">Blog Editorial Executive Suite</h3>
             <p className="text-xs text-brand-navy/50 mt-1 font-light">Draft, curate, optimize SEO, and generate instant social shares for publications.</p>
           </div>
-          <button
-            onClick={() => {
-              setEditingBlogPost(null);
-              setIsBlogFormOpen(true);
-            }}
-            className="self-start md:self-center bg-brand-navy text-white px-8 py-3.5 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-brand-gold hover:shadow-lg transition-all flex items-center gap-2 rounded-sm cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Write Master Article
-          </button>
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-center">
+            <button
+              onClick={handleExportBlogBackup}
+              title="Download JSON backup of all Firestore blog articles"
+              className="bg-white text-brand-navy border border-brand-navy/20 px-5 py-3.5 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-brand-navy hover:text-white transition-all flex items-center gap-2 rounded-sm cursor-pointer shadow-sm"
+            >
+              <Download className="w-4 h-4 text-brand-gold" />
+              Export Blog Backup
+            </button>
+            <button
+              onClick={() => {
+                setEditingBlogPost(null);
+                setIsBlogFormOpen(true);
+              }}
+              className="bg-brand-navy text-white px-8 py-3.5 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-brand-gold hover:shadow-lg transition-all flex items-center gap-2 rounded-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Write Master Article
+            </button>
+          </div>
         </div>
 
         {/* Stats Section */}
