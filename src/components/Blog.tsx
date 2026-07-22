@@ -22,7 +22,7 @@ export default function Blog() {
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const isAdminSession = searchParams.get('admin') === 'true';
-  const { data: firestoreBlog } = useFirestoreCollection<BlogPost>('blog');
+  const { data: firestoreBlog, loading: isBlogLoading } = useFirestoreCollection<BlogPost>('blog');
   const { data: firestoreTeam } = useFirestoreCollection<TeamMember>('team');
   const { data: firestoreServices } = useFirestoreCollection<any>('services');
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -63,14 +63,8 @@ export default function Blog() {
   const isAdmin = isAdminEmail(user?.email);
   
   const allPosts = useMemo(() => {
-    const merged = [...firestoreBlog];
-    MOCK_BLOG.forEach(mockPost => {
-      if (!merged.find(p => p.id === mockPost.id)) {
-        merged.push(mockPost);
-      }
-    });
     // Exclude draft publications from client-facing lists
-    return merged.filter(post => (post as any).status !== 'draft');
+    return firestoreBlog.filter(post => (post as any).status !== 'draft');
   }, [firestoreBlog]);
 
   const categories = useMemo(() => {
@@ -221,8 +215,23 @@ export default function Blog() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 min-h-[400px]">
-          <AnimatePresence mode="popLayout">
-            {paginatedPosts.map((post) => (
+          {isBlogLoading ? (
+            Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="bg-white/50 border border-brand-navy/5 p-8 animate-pulse flex flex-col h-[320px]">
+                <div className="h-4 w-24 bg-brand-navy/10 rounded mb-4" />
+                <div className="h-6 w-3/4 bg-brand-navy/10 rounded mb-3" />
+                <div className="h-4 w-full bg-brand-navy/10 rounded mb-2" />
+                <div className="h-4 w-2/3 bg-brand-navy/10 rounded mb-6" />
+                <div className="mt-auto h-8 w-28 bg-brand-navy/10 rounded" />
+              </div>
+            ))
+          ) : paginatedPosts.length === 0 ? (
+            <div className="col-span-full text-center py-16 text-brand-navy/60 font-serif">
+              {t('blogSection.noPosts', 'Henüz yayınlanmış bir makale bulunmamaktadır.')}
+            </div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {paginatedPosts.map((post) => (
                 <motion.article
                 key={post.id}
                 layout
@@ -297,6 +306,7 @@ export default function Blog() {
               </motion.article>
             ))}
           </AnimatePresence>
+          )}
         </div>
 
         {/* Pagination Controls */}

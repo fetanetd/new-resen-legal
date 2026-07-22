@@ -35,14 +35,8 @@ export default function BlogCarousel() {
   }, [firestoreTeam]);
 
   const posts = useMemo(() => {
-    const merged = [...firestoreBlog];
-    MOCK_BLOG.forEach(mockPost => {
-      if (!merged.find(p => p.id === mockPost.id)) {
-        merged.push(mockPost);
-      }
-    });
     // Filter out draft publications
-    const published = merged.filter(post => (post as any).status !== 'draft');
+    const published = firestoreBlog.filter(post => (post as any).status !== 'draft');
     return [...published].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
   }, [firestoreBlog]);
 
