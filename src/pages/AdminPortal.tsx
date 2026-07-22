@@ -34,7 +34,8 @@ import {
   ShieldCheck,
   Check,
   Info,
-  Download
+  Download,
+  Upload
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,7 +43,7 @@ import { cn, getCategoryTranslation, getPostSlug, findTeamMember, getTranslation
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { isAdminEmail } from '../constants/auth';
-import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc, getDocs, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc, getDocs, addDoc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import { useFirestoreCollection } from '../hooks/useFirestoreData';
 import BlogForm from '../components/BlogForm';
 import { BlogPost, TeamMember } from '../types';
@@ -821,6 +822,21 @@ export default function AdminPortal() {
   const [blogSelectedStatus, setBlogSelectedStatus] = useState<'' | 'published' | 'draft'>('');
   const [selectedSharePost, setSelectedSharePost] = useState<any | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Blog backup import states
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importPreviewData, setImportPreviewData] = useState<{
+    totalInFile: number;
+    newToImport: any[];
+    skippedExisting: { id: string; title: string; reason: string }[];
+    invalidItems: number;
+  } | null>(null);
+  const [importStatus, setImportStatus] = useState<'idle' | 'analyzing' | 'importing' | 'completed'>('idle');
+  const [importResultSummary, setImportResultSummary] = useState<{
+    importedCount: number;
+    skippedCount: number;
+  } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   // Blog slug edit states
   const [editingSlugs, setEditingSlugs] = useState<Record<string, string>>({});
@@ -2395,6 +2411,151 @@ export default function AdminPortal() {
     }
   };
 
+  const handleFileSelectForImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+    setImportResultSummary(null);
+    setImportStatus('analyzing');
+    setIsImportModalOpen(true);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const content = evt.target?.result as string;
+        const parsed = JSON.parse(content);
+
+        let rawPosts: any[] = [];
+        if (Array.isArray(parsed)) {
+          rawPosts = parsed;
+        } else if (parsed && Array.isArray(parsed.posts)) {
+          rawPosts = parsed.posts;
+        } else if (parsed && typeof parsed === 'object') {
+          rawPosts = [parsed];
+        }
+
+        const newToImport: any[] = [];
+        const skippedExisting: { id: string; title: string; reason: string }[] = [];
+        let invalidItems = 0;
+
+        const existingIds = new Set(firestoreBlog.map((p) => String(p.id).trim()));
+        const existingSlugs = new Set(
+          firestoreBlog.map((p) => (p.slug || getPostSlug(p)).toLowerCase().trim())
+        );
+
+        rawPosts.forEach((item) => {
+          if (!item || typeof item !== 'object' || !item.title || !item.content) {
+            invalidItems++;
+            return;
+          }
+
+          const itemId = item.id ? String(item.id).trim() : null;
+          const itemTitle = getPostTitle(item) || (typeof item.title === 'string' ? item.title : 'Untitled Article');
+          const computedSlug = (item.slug || getPostSlug(item)).toLowerCase().trim();
+
+          const isDuplicateId = itemId ? existingIds.has(itemId) : false;
+          const isDuplicateSlug = computedSlug ? existingSlugs.has(computedSlug) : false;
+
+          if (isDuplicateId || isDuplicateSlug) {
+            skippedExisting.push({
+              id: itemId || 'auto-generated',
+              title: itemTitle,
+              reason: isDuplicateId ? 'ID already exists' : 'Slug already exists',
+            });
+          } else {
+            newToImport.push(item);
+          }
+        });
+
+        setImportPreviewData({
+          totalInFile: rawPosts.length,
+          newToImport,
+          skippedExisting,
+          invalidItems,
+        });
+        setImportStatus('idle');
+      } catch (err: any) {
+        console.error('Failed to parse backup JSON file:', err);
+        setImportError('Invalid JSON file format. Please ensure you uploaded a valid blog backup JSON file.');
+        setImportStatus('idle');
+      }
+    };
+
+    reader.onerror = () => {
+      setImportError('Failed to read the selected file.');
+      setImportStatus('idle');
+    };
+
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleExecuteImport = async () => {
+    if (!importPreviewData || importPreviewData.newToImport.length === 0) return;
+
+    setImportStatus('importing');
+    setImportError(null);
+    let importedCount = 0;
+    let skippedCount = importPreviewData.skippedExisting.length + importPreviewData.invalidItems;
+
+    try {
+      for (const post of importPreviewData.newToImport) {
+        const postId = post.id ? String(post.id).trim() : null;
+
+        // Double check in Firestore before writing to ensure safety
+        if (postId) {
+          const docRef = doc(db, 'blog', postId);
+          const snap = await getDoc(docRef);
+          if (snap.exists()) {
+            skippedCount++;
+            continue;
+          }
+        }
+
+        // Prepare post document - MANDATORY SAFETY REQUIREMENT: Always set status to 'draft'
+        const postPayload: Record<string, any> = {
+          title: post.title || { tr: '', en: '' },
+          excerpt: post.excerpt || { tr: '', en: '' },
+          content: post.content || { tr: '', en: '' },
+          image: post.image || '',
+          date: post.date || new Date().toISOString().split('T')[0],
+          category: post.category || 'General',
+          authorId: post.authorId || user?.uid || 'admin',
+          slug: post.slug || getPostSlug(post),
+          status: 'draft', // Safety mandate: Always default imported items to draft
+        };
+
+        if (post.seoTitle) postPayload.seoTitle = post.seoTitle;
+        if (post.seoDescription) postPayload.seoDescription = post.seoDescription;
+        if (post.seoKeywords) postPayload.seoKeywords = post.seoKeywords;
+        if (post.imageAlt) postPayload.imageAlt = post.imageAlt;
+        if (post.views !== undefined) postPayload.views = post.views;
+        if (post.likes !== undefined) postPayload.likes = post.likes;
+        if (post.createdAt) postPayload.createdAt = post.createdAt;
+        if (post.updatedAt) postPayload.updatedAt = post.updatedAt;
+
+        if (postId) {
+          await setDoc(doc(db, 'blog', postId), postPayload);
+        } else {
+          await addDoc(collection(db, 'blog'), postPayload);
+        }
+
+        importedCount++;
+      }
+
+      setImportResultSummary({
+        importedCount,
+        skippedCount,
+      });
+      setImportStatus('completed');
+    } catch (err: any) {
+      console.error('Error executing blog import:', err);
+      setImportError('Import failed: ' + (err.message || 'Unknown error occurred'));
+      setImportStatus('idle');
+    }
+  };
+
   const renderBlogDashboard = () => {
     // Merge Firestore and Mock blog posts safely
     const mergedPosts = [...firestoreBlog];
@@ -2442,6 +2603,19 @@ export default function AdminPortal() {
             <p className="text-xs text-brand-navy/50 mt-1 font-light">Draft, curate, optimize SEO, and generate instant social shares for publications.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 self-start md:self-center">
+            <label
+              title="Import blog articles from a JSON backup file (Adds missing posts as drafts)"
+              className="bg-white text-brand-navy border border-brand-navy/20 px-5 py-3.5 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-brand-navy hover:text-white transition-all flex items-center gap-2 rounded-sm cursor-pointer shadow-sm"
+            >
+              <Upload className="w-4 h-4 text-brand-gold" />
+              Import Blog Backup
+              <input
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleFileSelectForImport}
+              />
+            </label>
             <button
               onClick={handleExportBlogBackup}
               title="Download JSON backup of all Firestore blog articles"
@@ -3584,6 +3758,218 @@ export default function AdminPortal() {
             </motion.div>
           </AnimatePresence>
         </div>
+        {/* Import Blog Backup Modal */}
+        <AnimatePresence>
+          {isImportModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-navy/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-sm shadow-2xl max-w-2xl w-full border border-brand-navy/10 overflow-hidden flex flex-col max-h-[90vh]"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-brand-navy/10 flex items-center justify-between bg-brand-navy/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-brand-gold/10 text-brand-gold rounded-sm">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-brand-navy">Import Blog Backup</h3>
+                      <p className="text-[10px] uppercase tracking-wider text-brand-navy/50 font-bold mt-0.5">
+                        Mode: Add Missing Posts Only
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsImportModalOpen(false);
+                      setImportPreviewData(null);
+                      setImportStatus('idle');
+                      setImportError(null);
+                    }}
+                    className="p-1 text-brand-navy/40 hover:text-brand-navy transition-colors cursor-pointer"
+                  >
+                    <CloseIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto space-y-6 flex-grow">
+                  {importStatus === 'analyzing' && (
+                    <div className="py-12 text-center space-y-3">
+                      <RefreshCw className="w-8 h-8 text-brand-gold animate-spin mx-auto" />
+                      <p className="text-sm font-serif text-brand-navy">Analyzing backup file...</p>
+                    </div>
+                  )}
+
+                  {importError && (
+                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-sm flex items-start gap-3 text-xs">
+                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Import Error</p>
+                        <p className="mt-1">{importError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {importStatus === 'completed' && importResultSummary && (
+                    <div className="p-6 bg-green-50 border border-green-200 text-green-800 rounded-sm space-y-4">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
+                        <div>
+                          <h4 className="font-serif font-bold text-base text-green-900">Import Complete!</h4>
+                          <p className="text-xs text-green-700 mt-1">
+                            Successfully added <strong>{importResultSummary.importedCount}</strong> new article(s) to Firestore as <strong>Drafts</strong>.
+                          </p>
+                        </div>
+                      </div>
+                      {importResultSummary.skippedCount > 0 && (
+                        <p className="text-xs text-green-800/80 pt-2 border-t border-green-200">
+                          {importResultSummary.skippedCount} article(s) were safely skipped because they already existed or were invalid.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {importStatus !== 'analyzing' && importStatus !== 'completed' && importPreviewData && (
+                    <div className="space-y-6">
+                      {/* Safety Banner */}
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-sm flex items-start gap-3">
+                        <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-amber-900 leading-relaxed">
+                          <span className="font-bold">Safety Guarantee:</span> Existing Firestore articles will <strong>never</strong> be overwritten or deleted. All imported articles will be saved as <strong>Drafts</strong> for your review before publishing.
+                        </div>
+                      </div>
+
+                      {/* Summary Stats Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="p-3 bg-brand-navy/5 rounded-sm border border-brand-navy/10">
+                          <p className="text-[9px] uppercase tracking-wider font-bold text-brand-navy/50">Total In File</p>
+                          <p className="text-xl font-serif font-bold text-brand-navy mt-1">{importPreviewData.totalInFile}</p>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-sm border border-green-200">
+                          <p className="text-[9px] uppercase tracking-wider font-bold text-green-700">New To Import</p>
+                          <p className="text-xl font-serif font-bold text-green-800 mt-1">{importPreviewData.newToImport.length}</p>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-sm border border-gray-200">
+                          <p className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Already Exist</p>
+                          <p className="text-xl font-serif font-bold text-gray-700 mt-1">{importPreviewData.skippedExisting.length}</p>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-sm border border-gray-200">
+                          <p className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Invalid / Skipped</p>
+                          <p className="text-xl font-serif font-bold text-gray-700 mt-1">{importPreviewData.invalidItems}</p>
+                        </div>
+                      </div>
+
+                      {/* List of New Articles to Import */}
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy mb-3 flex items-center justify-between">
+                          <span>Articles To Be Added ({importPreviewData.newToImport.length})</span>
+                          <span className="text-[10px] text-brand-gold font-semibold uppercase tracking-widest bg-brand-gold/10 px-2 py-0.5 rounded-xs">Default State: Draft</span>
+                        </h4>
+
+                        {importPreviewData.newToImport.length === 0 ? (
+                          <div className="p-4 bg-gray-50 border border-gray-200 rounded-sm text-center text-xs text-gray-500 italic">
+                            No new articles found in this backup file. All items already exist in Firestore.
+                          </div>
+                        ) : (
+                          <div className="max-h-52 overflow-y-auto border border-brand-navy/10 rounded-sm divide-y divide-brand-navy/5">
+                            {importPreviewData.newToImport.map((item, idx) => (
+                              <div key={idx} className="p-3 bg-white hover:bg-brand-navy/5 transition-colors flex items-center justify-between gap-3 text-xs">
+                                <div className="min-w-0 flex-grow">
+                                  <p className="font-semibold text-brand-navy truncate">
+                                    {getPostTitle(item) || (typeof item.title === 'string' ? item.title : 'Untitled Article')}
+                                  </p>
+                                  <p className="text-[10px] text-brand-navy/40 font-mono mt-0.5 truncate">
+                                    ID: {item.id || 'auto-generated'} | Category: {item.category || 'General'}
+                                  </p>
+                                </div>
+                                <span className="shrink-0 text-[9px] uppercase tracking-widest font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs">
+                                  Draft
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* List of Skipped Existing Articles */}
+                      {importPreviewData.skippedExisting.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy/60 mb-2">
+                            Existing Articles Skipped ({importPreviewData.skippedExisting.length})
+                          </h4>
+                          <div className="max-h-32 overflow-y-auto border border-brand-navy/10 rounded-sm divide-y divide-brand-navy/5 bg-gray-50/50">
+                            {importPreviewData.skippedExisting.map((item, idx) => (
+                              <div key={idx} className="p-2.5 flex items-center justify-between gap-2 text-[11px] text-brand-navy/60">
+                                <span className="truncate">{item.title}</span>
+                                <span className="shrink-0 text-[9px] text-gray-500 bg-gray-200/80 px-2 py-0.5 rounded-xs font-mono">
+                                  {item.reason}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-brand-navy/10 bg-brand-navy/5 flex items-center justify-end gap-3">
+                  {importStatus === 'completed' ? (
+                    <button
+                      onClick={() => {
+                        setIsImportModalOpen(false);
+                        setImportPreviewData(null);
+                        setImportStatus('idle');
+                      }}
+                      className="bg-brand-navy text-white px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-brand-gold transition-colors cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        disabled={importStatus === 'importing'}
+                        onClick={() => {
+                          setIsImportModalOpen(false);
+                          setImportPreviewData(null);
+                          setImportStatus('idle');
+                          setImportError(null);
+                        }}
+                        className="px-5 py-2.5 text-xs font-bold text-brand-navy/60 hover:text-brand-navy transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      {importPreviewData && importPreviewData.newToImport.length > 0 && (
+                        <button
+                          disabled={importStatus === 'importing'}
+                          onClick={handleExecuteImport}
+                          className="bg-brand-navy text-white px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-brand-gold transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {importStatus === 'importing' ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin text-brand-gold" />
+                              Importing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 text-brand-gold" />
+                              Confirm & Import ({importPreviewData.newToImport.length} Articles)
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         <BlogForm 
           isOpen={isBlogFormOpen} 
           onClose={() => { 
