@@ -1,0 +1,23 @@
+# Resen Legal & Consultancy
+
+> Resen Legal & Consultancy is a Türkiye-based legal consultancy offering services in Turkish and English, covering immigration and foreigners law, data protection (KVKK), commercial and corporate law, real estate law, inheritance and private client matters, family law, human rights and administrative law, labor law, and international residency/mobility (UK, Portugal, Spain, US).
+
+Content on this site is informational and does not constitute legal advice. For consultation, contact Resen Legal directly.
+
+## Main Pages
+- Home: https://resenlegal.com/
+- About: https://resenlegal.com/about/
+- All Services: https://resenlegal.com/services/
+- Team: https://resenlegal.com/team/
+- Blog: https://resenlegal.com/blog/
+
+## Services
+- Citizenship & Immigration Law: https://resenlegal.com/service/citizenship-immigration-law/
+- Data Protection Law / KVKK: https://resenlegal.com/service/data-protection-law/
+- Commercial & Corporate Law: https://resenlegal.com/service/commercial-corporate-law/
+- Real Estate & Property Law: https://resenlegal.com/service/real-estate-property-law/
+- Inheritance & Private Client Services: https://resenlegal.com/service/inheritance-private-client/
+- Family & Matrimonial Law: https://resenlegal.com/service/family-matrimonial-law/
+- Human Rights & Administrative Law: https://resenlegal.com/service/human-rights-administrative/
+- Labor & Employment Law: https://resenlegal.com/service/labor-employment-law/
+- Global Mobility & Visa Services: https://resenlegal.com/service/global-mobility-visa/
