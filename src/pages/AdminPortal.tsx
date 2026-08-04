@@ -35,7 +35,10 @@ import {
   Check,
   Info,
   Download,
-  Upload
+  Upload,
+  Smartphone,
+  Monitor,
+  Copy
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { Link, useNavigate } from 'react-router-dom';
@@ -866,6 +869,92 @@ export default function AdminPortal() {
   });
   const [linkFilter, setLinkFilter] = useState<'all' | 'broken' | 'ok'>('broken');
   const [linkTypeFilter, setLinkTypeFilter] = useState<'all' | 'internal' | 'external'>('all');
+
+  // Google SERP Snippet Preview Tool States
+  const [isSerpModalOpen, setIsSerpModalOpen] = useState(false);
+  const [serpSelectedPost, setSerpSelectedPost] = useState<BlogPost | null>(null);
+  const [serpTitle, setSerpTitle] = useState('Türkiye’de İkamet İzni Başvurusu ve Rehber | Resen Legal');
+  const [serpMetaDesc, setSerpMetaDesc] = useState('Türkiye’de oturma izni (ikamet izni) türleri, başvuru şartları, uzatma süreçleri ve yabancılar hukuku kapsamında dikkat edilmesi gereken hukuki detaylar.');
+  const [serpSlug, setSerpSlug] = useState('turkiyede-ikamet-izni-basvurusu');
+  const [serpDevice, setSerpDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [serpIsSaving, setSerpIsSaving] = useState(false);
+  const [serpSaveSuccess, setSerpSaveSuccess] = useState<string | null>(null);
+  const [serpSaveError, setSerpSaveError] = useState<string | null>(null);
+
+  const openSerpPreviewModal = (post?: BlogPost | null) => {
+    setSerpSelectedPost(post || null);
+    setSerpSaveSuccess(null);
+    setSerpSaveError(null);
+    if (post) {
+      const trTitle = typeof post.title === 'string' ? post.title : (post.title?.tr || post.title?.en || '');
+      const trExcerpt = typeof post.excerpt === 'string' ? post.excerpt : (post.excerpt?.tr || post.excerpt?.en || '');
+      setSerpTitle(post.metaTitle || trTitle);
+      setSerpMetaDesc(post.metaDescription || trExcerpt);
+      setSerpSlug(getPostSlug(post));
+    } else {
+      setSerpTitle('Türkiye’de İkamet İzni Başvurusu ve Rehber | Resen Legal');
+      setSerpMetaDesc('Türkiye’de oturma izni (ikamet izni) türleri, başvuru şartları, uzatma süreçleri ve yabancılar hukuku kapsamında dikkat edilmesi gereken hukuki detaylar.');
+      setSerpSlug('turkiyede-ikamet-izni-basvurusu');
+    }
+    setIsSerpModalOpen(true);
+  };
+
+  const handleSelectSerpPost = (postId: string) => {
+    setSerpSaveSuccess(null);
+    setSerpSaveError(null);
+    if (!postId) {
+      setSerpSelectedPost(null);
+      setSerpTitle('Türkiye’de İkamet İzni Başvurusu ve Rehber | Resen Legal');
+      setSerpMetaDesc('Türkiye’de oturma izni (ikamet izni) türleri, başvuru şartları, uzatma süreçleri ve yabancılar hukuku kapsamında dikkat edilmesi gereken hukuki detaylar.');
+      setSerpSlug('turkiyede-ikamet-izni-basvurusu');
+      return;
+    }
+
+    const merged = [...firestoreBlog];
+    MOCK_BLOG.forEach(mockPost => {
+      if (!merged.find(p => p.id === mockPost.id)) {
+        merged.push(mockPost as any as BlogPost);
+      }
+    });
+
+    const found = merged.find(p => p.id === postId);
+    if (found) {
+      setSerpSelectedPost(found);
+      const trTitle = typeof found.title === 'string' ? found.title : (found.title?.tr || found.title?.en || '');
+      const trExcerpt = typeof found.excerpt === 'string' ? found.excerpt : (found.excerpt?.tr || found.excerpt?.en || '');
+      setSerpTitle(found.metaTitle || trTitle);
+      setSerpMetaDesc(found.metaDescription || trExcerpt);
+      setSerpSlug(getPostSlug(found));
+    }
+  };
+
+  const saveSerpMetadataToPost = async () => {
+    if (!serpSelectedPost || !serpSelectedPost.id) {
+      setSerpSaveError('No saved article selected. Please pick an existing article from the dropdown to save changes.');
+      return;
+    }
+
+    try {
+      setSerpIsSaving(true);
+      setSerpSaveError(null);
+      setSerpSaveSuccess(null);
+
+      const postRef = doc(db, 'blog', serpSelectedPost.id);
+      await updateDoc(postRef, {
+        metaTitle: serpTitle.trim(),
+        metaDescription: serpMetaDesc.trim(),
+        slug: serpSlug.trim().toLowerCase()
+      });
+
+      await logActivity('UPDATE', 'blog', serpSelectedPost.id);
+      setSerpSaveSuccess('Successfully saved meta title, description and slug to Firestore!');
+    } catch (err: any) {
+      console.error('Error saving SERP metadata:', err);
+      setSerpSaveError('Failed to update Firestore: ' + (err.message || 'Unknown error'));
+    } finally {
+      setSerpIsSaving(false);
+    }
+  };
 
   // Settings State
   const [seoConfig, setSeoConfig] = useState({
@@ -2076,6 +2165,251 @@ export default function AdminPortal() {
           )}
         </div>
 
+        {/* Google SERP Search Results Preview Tool */}
+        <div className="bg-white border border-brand-navy/10 rounded-sm shadow-md p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-navy/5 pb-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xs uppercase tracking-[0.2em] font-black text-brand-navy">Google SERP Snippet Preview Tool</h3>
+              </div>
+              <p className="text-[11px] text-brand-navy/60 leading-relaxed">
+                Simulate how blog posts appear in Google search engine results pages (SERP). Test title lengths, meta descriptions, and URL slugs across Desktop and Mobile viewports.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setSerpDevice('desktop')}
+                className={cn(
+                  "px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer",
+                  serpDevice === 'desktop' ? "bg-brand-navy text-white" : "bg-brand-navy/5 text-brand-navy/60 hover:bg-brand-navy/10"
+                )}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                Desktop
+              </button>
+              <button
+                onClick={() => setSerpDevice('mobile')}
+                className={cn(
+                  "px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer",
+                  serpDevice === 'mobile' ? "bg-brand-navy text-white" : "bg-brand-navy/5 text-brand-navy/60 hover:bg-brand-navy/10"
+                )}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                Mobile
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Input Controls */}
+            <div className="lg:col-span-6 space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider font-black text-brand-navy/70 mb-1.5">
+                  Load Article Metadata
+                </label>
+                <select
+                  value={serpSelectedPost?.id || ''}
+                  onChange={(e) => handleSelectSerpPost(e.target.value)}
+                  className="w-full bg-brand-offwhite border border-brand-navy/10 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                >
+                  <option value="">Custom Input / New Draft Preview</option>
+                  {[...firestoreBlog, ...MOCK_BLOG.filter(m => !firestoreBlog.some(f => f.id === m.id))].map(p => {
+                    const titleStr = typeof p.title === 'string' ? p.title : (p.title?.tr || p.title?.en || p.id);
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {titleStr}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] uppercase tracking-wider font-black text-brand-navy/70">
+                    Google Title ({serpTitle.length} / 60 chars)
+                  </label>
+                  <span className={cn(
+                    "text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider",
+                    serpTitle.length >= 40 && serpTitle.length <= 60 
+                      ? "bg-green-100 text-green-800" 
+                      : serpTitle.length < 40 
+                        ? "bg-amber-100 text-amber-800" 
+                        : "bg-red-100 text-red-800"
+                  )}>
+                    {serpTitle.length >= 40 && serpTitle.length <= 60 ? "Optimal Length" : serpTitle.length < 40 ? "Too Short (<40)" : "Truncated (>60)"}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={serpTitle}
+                  onChange={(e) => setSerpTitle(e.target.value)}
+                  placeholder="e.g. Boşanma Davası Rehberi | Resen Legal"
+                  className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                />
+                <div className="w-full bg-brand-navy/5 h-1 rounded-full overflow-hidden mt-1">
+                  <div 
+                    className={cn(
+                      "h-full transition-all duration-300",
+                      serpTitle.length >= 40 && serpTitle.length <= 60 ? "bg-green-500" : serpTitle.length < 40 ? "bg-amber-400" : "bg-red-500"
+                    )}
+                    style={{ width: `${Math.min((serpTitle.length / 60) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] uppercase tracking-wider font-black text-brand-navy/70">
+                    Meta Description ({serpMetaDesc.length} / 160 chars)
+                  </label>
+                  <span className={cn(
+                    "text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider",
+                    serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 
+                      ? "bg-green-100 text-green-800" 
+                      : serpMetaDesc.length < 120 
+                        ? "bg-amber-100 text-amber-800" 
+                        : "bg-red-100 text-red-800"
+                  )}>
+                    {serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 ? "Optimal Length" : serpMetaDesc.length < 120 ? "Too Short (<120)" : "Truncated (>160)"}
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={serpMetaDesc}
+                  onChange={(e) => setSerpMetaDesc(e.target.value)}
+                  placeholder="e.g. Türkiye ve İngiltere boşanma davaları, mal paylaşımı ve velayet süreçleri hakkında hukuki danışmanlık rehberi."
+                  className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none resize-none"
+                />
+                <div className="w-full bg-brand-navy/5 h-1 rounded-full overflow-hidden mt-1">
+                  <div 
+                    className={cn(
+                      "h-full transition-all duration-300",
+                      serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 ? "bg-green-500" : serpMetaDesc.length < 120 ? "bg-amber-400" : "bg-red-500"
+                    )}
+                    style={{ width: `${Math.min((serpMetaDesc.length / 160) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider font-black text-brand-navy/70 mb-1.5">
+                  URL Slug Segment
+                </label>
+                <div className="flex items-center">
+                  <span className="bg-brand-navy/5 border border-r-0 border-brand-navy/15 p-2.5 text-[10px] font-mono text-brand-navy/50 rounded-l-sm select-none">
+                    https://resenlegal.com/blog/
+                  </span>
+                  <input
+                    type="text"
+                    value={serpSlug}
+                    onChange={(e) => setSerpSlug(e.target.value)}
+                    className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-mono font-medium text-brand-navy rounded-r-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {serpSaveSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded-sm flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                  <span>{serpSaveSuccess}</span>
+                </div>
+              )}
+
+              {serpSaveError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-sm flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{serpSaveError}</span>
+                </div>
+              )}
+
+              {serpSelectedPost && (
+                <button
+                  onClick={saveSerpMetadataToPost}
+                  disabled={serpIsSaving}
+                  className="w-full bg-brand-navy hover:bg-brand-gold text-white hover:text-brand-navy py-3 text-[10px] uppercase tracking-widest font-black transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  {serpIsSaving ? 'Saving to Firestore...' : 'Save Meta Tags to Selected Post'}
+                </button>
+              )}
+            </div>
+
+            {/* Live Google Search Results Display */}
+            <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-sm p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400 inline-block" />
+                    <div className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
+                    <div className="w-3 h-3 rounded-full bg-green-400 inline-block" />
+                    <span className="text-[10px] font-mono text-slate-400 ml-2">google.com search result simulator</span>
+                  </div>
+                  <span className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+                    {serpDevice === 'desktop' ? 'Desktop View' : 'Mobile View'}
+                  </span>
+                </div>
+
+                {/* Google Snippet Container */}
+                <div className={cn(
+                  "bg-white p-5 rounded-md border border-slate-200/80 shadow-sm transition-all",
+                  serpDevice === 'mobile' && "max-w-[360px] mx-auto border-slate-300 shadow-md"
+                )}>
+                  {/* Site identity header */}
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <div className="w-6 h-6 rounded-full bg-brand-navy flex items-center justify-center text-brand-gold text-[10px] font-bold shrink-0">
+                      ⚖️
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[12px] font-medium text-[#202124] leading-none truncate font-sans">
+                        Resen Legal & Consultancy
+                      </div>
+                      <div className="text-[11px] text-[#4d5156] leading-tight truncate font-sans">
+                        https://resenlegal.com › blog › {serpSlug || 'post-slug'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Title Link */}
+                  <h4 className={cn(
+                    "font-sans font-normal text-[#1a0dab] hover:underline cursor-pointer leading-snug mt-1",
+                    serpDevice === 'desktop' ? "text-[18px]" : "text-[20px]"
+                  )}>
+                    {serpTitle.length > 60 
+                      ? `${serpTitle.substring(0, 58)}...` 
+                      : (serpTitle || 'Article Title - Resen Legal')}
+                  </h4>
+
+                  {/* Snippet text */}
+                  <p className={cn(
+                    "font-sans text-[#4d5156] leading-normal mt-1.5",
+                    serpDevice === 'desktop' ? "text-[13px]" : "text-[14px]"
+                  )}>
+                    {serpMetaDesc.length > 160 
+                      ? `${serpMetaDesc.substring(0, 157)}...` 
+                      : (serpMetaDesc || 'Meta description snippet will appear here in Google search engine results...')}
+                  </p>
+                </div>
+
+                {/* Quality Tips Box */}
+                <div className="bg-blue-50/60 border border-blue-200/60 rounded-sm p-4 text-[11px] space-y-1.5 text-blue-900">
+                  <div className="font-bold flex items-center gap-1.5 uppercase text-[9px] tracking-wider text-blue-800">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    SEO Snippet Quality Tips
+                  </div>
+                  <ul className="list-disc list-inside space-y-1 text-blue-800/80 font-normal leading-relaxed text-[10.5px]">
+                    <li>Keep titles under 60 characters to avoid trailing <code className="bg-blue-100 px-1 py-0.5 rounded font-mono">...</code> cutoffs on Google.</li>
+                    <li>Include high-intent keywords (e.g., <i>Boşanma Davası, İkamet İzni, Gayrimenkul Hukuku</i>) near the beginning.</li>
+                    <li>Craft meta descriptions (120-160 chars) with a compelling call-to-action to maximize click-through rate (CTR).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* SEO Dashboard Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="bg-white p-8 border border-brand-navy/5 rounded-sm shadow-sm space-y-2 flex flex-col justify-center">
@@ -2261,6 +2595,16 @@ export default function AdminPortal() {
                           {record.rating} ({record.score}%)
                         </span>
                       </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openSerpPreviewModal(record.post);
+                        }}
+                        className="bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-3.5 py-2 text-[9px] uppercase tracking-widest font-black transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Search className="w-3 h-3 text-blue-600" />
+                        Google Preview
+                      </button>
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2834,6 +3178,13 @@ export default function AdminPortal() {
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </Link>
+                            <button
+                              onClick={() => openSerpPreviewModal(post)}
+                              className="p-2 text-brand-navy/40 hover:text-blue-600 transition-colors bg-blue-50/80 hover:bg-blue-100 rounded-sm cursor-pointer"
+                              title="Google SERP Search Snippet Preview"
+                            >
+                              <Search className="w-3.5 h-3.5 text-blue-600" />
+                            </button>
                             <button
                               onClick={() => {
                                 setSelectedSharePost(post);
@@ -3963,6 +4314,262 @@ export default function AdminPortal() {
                         </button>
                       )}
                     </>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Google SERP Snippet Preview Modal */}
+        <AnimatePresence>
+          {isSerpModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-navy/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-sm shadow-2xl max-w-4xl w-full border border-brand-navy/10 overflow-hidden flex flex-col max-h-[90vh]"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-brand-navy/10 flex items-center justify-between bg-brand-navy/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-100 text-blue-700 rounded-sm">
+                      <Search className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-brand-navy">Google SERP Snippet Simulator</h3>
+                      <p className="text-[10px] uppercase tracking-wider text-brand-navy/50 font-bold mt-0.5">
+                        {serpSelectedPost ? `Selected Article: ${typeof serpSelectedPost.title === 'string' ? serpSelectedPost.title : (serpSelectedPost.title?.tr || serpSelectedPost.title?.en)}` : 'Custom Draft Snippet Optimization'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsSerpModalOpen(false);
+                      setSerpSaveSuccess(null);
+                      setSerpSaveError(null);
+                    }}
+                    className="p-1.5 text-brand-navy/40 hover:text-brand-navy transition-colors cursor-pointer"
+                  >
+                    <CloseIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto space-y-6 flex-grow">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    {/* Left Form Column */}
+                    <div className="md:col-span-6 space-y-4">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-black text-brand-navy/70 mb-1.5">
+                          Select Blog Article
+                        </label>
+                        <select
+                          value={serpSelectedPost?.id || ''}
+                          onChange={(e) => handleSelectSerpPost(e.target.value)}
+                          className="w-full bg-brand-offwhite border border-brand-navy/10 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                        >
+                          <option value="">Custom Input / New Draft Preview</option>
+                          {[...firestoreBlog, ...MOCK_BLOG.filter(m => !firestoreBlog.some(f => f.id === m.id))].map(p => {
+                            const titleStr = typeof p.title === 'string' ? p.title : (p.title?.tr || p.title?.en || p.id);
+                            return (
+                              <option key={p.id} value={p.id}>
+                                {titleStr}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[10px] uppercase tracking-wider font-black text-brand-navy/70">
+                            Search Title ({serpTitle.length} / 60 chars)
+                          </label>
+                          <span className={cn(
+                            "text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider",
+                            serpTitle.length >= 40 && serpTitle.length <= 60 
+                              ? "bg-green-100 text-green-800" 
+                              : serpTitle.length < 40 
+                                ? "bg-amber-100 text-amber-800" 
+                                : "bg-red-100 text-red-800"
+                          )}>
+                            {serpTitle.length >= 40 && serpTitle.length <= 60 ? "Optimal Length" : serpTitle.length < 40 ? "Too Short (<40)" : "Truncated (>60)"}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={serpTitle}
+                          onChange={(e) => setSerpTitle(e.target.value)}
+                          placeholder="e.g. Boşanma Davası Rehberi | Resen Legal"
+                          className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[10px] uppercase tracking-wider font-black text-brand-navy/70">
+                            Meta Description ({serpMetaDesc.length} / 160 chars)
+                          </label>
+                          <span className={cn(
+                            "text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider",
+                            serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 
+                              ? "bg-green-100 text-green-800" 
+                              : serpMetaDesc.length < 120 
+                                ? "bg-amber-100 text-amber-800" 
+                                : "bg-red-100 text-red-800"
+                          )}>
+                            {serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 ? "Optimal Length" : serpMetaDesc.length < 120 ? "Too Short (<120)" : "Truncated (>160)"}
+                          </span>
+                        </div>
+                        <textarea
+                          rows={4}
+                          value={serpMetaDesc}
+                          onChange={(e) => setSerpMetaDesc(e.target.value)}
+                          placeholder="Meta description preview snippet..."
+                          className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-medium text-brand-navy rounded-sm focus:ring-1 focus:ring-brand-gold focus:outline-none resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-black text-brand-navy/70 mb-1.5">
+                          URL Slug
+                        </label>
+                        <div className="flex items-center">
+                          <span className="bg-brand-navy/5 border border-r-0 border-brand-navy/15 p-2.5 text-[10px] font-mono text-brand-navy/50 rounded-l-sm select-none">
+                            https://resenlegal.com/blog/
+                          </span>
+                          <input
+                            type="text"
+                            value={serpSlug}
+                            onChange={(e) => setSerpSlug(e.target.value)}
+                            className="w-full bg-white border border-brand-navy/15 p-2.5 text-xs font-mono font-medium text-brand-navy rounded-r-sm focus:ring-1 focus:ring-brand-gold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {serpSaveSuccess && (
+                        <div className="p-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded-sm flex items-center gap-2 font-medium">
+                          <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                          <span>{serpSaveSuccess}</span>
+                        </div>
+                      )}
+
+                      {serpSaveError && (
+                        <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-sm flex items-center gap-2 font-medium">
+                          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                          <span>{serpSaveError}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Preview Column */}
+                    <div className="md:col-span-6 space-y-4">
+                      <div className="flex items-center justify-between bg-slate-100 p-2 rounded-sm border border-slate-200">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Device Simulator Mode</span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setSerpDevice('desktop')}
+                            className={cn(
+                              "px-2.5 py-1 text-[9px] uppercase tracking-wider font-bold rounded-sm flex items-center gap-1 transition-colors cursor-pointer",
+                              serpDevice === 'desktop' ? "bg-brand-navy text-white" : "text-slate-600 hover:bg-slate-200"
+                            )}
+                          >
+                            <Monitor className="w-3 h-3" />
+                            Desktop
+                          </button>
+                          <button
+                            onClick={() => setSerpDevice('mobile')}
+                            className={cn(
+                              "px-2.5 py-1 text-[9px] uppercase tracking-wider font-bold rounded-sm flex items-center gap-1 transition-colors cursor-pointer",
+                              serpDevice === 'mobile' ? "bg-brand-navy text-white" : "text-slate-600 hover:bg-slate-200"
+                            )}
+                          >
+                            <Smartphone className="w-3 h-3" />
+                            Mobile
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Google Result Preview Box */}
+                      <div className={cn(
+                        "bg-white p-5 rounded-md border border-slate-300 shadow-sm transition-all",
+                        serpDevice === 'mobile' && "max-w-[340px] mx-auto shadow-md"
+                      )}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-5 h-5 rounded-full bg-brand-navy flex items-center justify-center text-brand-gold text-[9px] font-bold shrink-0">
+                            ⚖️
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-medium text-[#202124] leading-none truncate font-sans">
+                              Resen Legal & Consultancy
+                            </div>
+                            <div className="text-[10px] text-[#4d5156] leading-tight truncate font-sans">
+                              https://resenlegal.com › blog › {serpSlug || 'slug'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <h4 className={cn(
+                          "font-sans font-normal text-[#1a0dab] hover:underline cursor-pointer leading-snug mt-1",
+                          serpDevice === 'desktop' ? "text-[18px]" : "text-[20px]"
+                        )}>
+                          {serpTitle.length > 60 ? `${serpTitle.substring(0, 58)}...` : (serpTitle || 'Article Title')}
+                        </h4>
+
+                        <p className={cn(
+                          "font-sans text-[#4d5156] leading-normal mt-1.5",
+                          serpDevice === 'desktop' ? "text-[13px]" : "text-[14px]"
+                        )}>
+                          {serpMetaDesc.length > 160 ? `${serpMetaDesc.substring(0, 157)}...` : (serpMetaDesc || 'Meta description preview snippet...')}
+                        </p>
+                      </div>
+
+                      {/* Optimization Summary */}
+                      <div className="bg-brand-offwhite p-4 rounded-sm border border-brand-navy/10 space-y-2">
+                        <span className="text-[10px] uppercase tracking-wider font-black text-brand-navy">SEO Health Diagnostics</span>
+                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                          <div className="p-2 bg-white rounded border border-brand-navy/5">
+                            <span className="text-[9px] font-bold text-slate-500 block">TITLE LENGTH</span>
+                            <span className={cn("font-bold", serpTitle.length >= 40 && serpTitle.length <= 60 ? "text-green-600" : "text-amber-600")}>
+                              {serpTitle.length} chars {serpTitle.length >= 40 && serpTitle.length <= 60 ? '✓' : '⚠️'}
+                            </span>
+                          </div>
+                          <div className="p-2 bg-white rounded border border-brand-navy/5">
+                            <span className="text-[9px] font-bold text-slate-500 block">META DESC LENGTH</span>
+                            <span className={cn("font-bold", serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 ? "text-green-600" : "text-amber-600")}>
+                              {serpMetaDesc.length} chars {serpMetaDesc.length >= 120 && serpMetaDesc.length <= 160 ? '✓' : '⚠️'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-brand-navy/10 bg-brand-navy/5 flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setIsSerpModalOpen(false);
+                      setSerpSaveSuccess(null);
+                      setSerpSaveError(null);
+                    }}
+                    className="px-5 py-2.5 text-xs font-bold text-brand-navy/60 hover:text-brand-navy transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+
+                  {serpSelectedPost && (
+                    <button
+                      onClick={saveSerpMetadataToPost}
+                      disabled={serpIsSaving}
+                      className="bg-brand-navy text-white px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-brand-gold hover:text-brand-navy transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Save className="w-4 h-4 text-brand-gold" />
+                      {serpIsSaving ? 'Saving to Article...' : 'Save Meta Tags to Selected Post'}
+                    </button>
                   )}
                 </div>
               </motion.div>
