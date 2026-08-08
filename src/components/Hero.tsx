@@ -56,7 +56,7 @@ export default function Hero() {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 ltr:group-hover:translate-x-1.5 rtl:group-hover:-translate-x-1.5 transition-transform duration-300" />
             </motion.button>
             <Link 
-              to="/services"
+              to="/services/"
               className="border border-brand-gold px-10 py-5 rounded-sm text-brand-navy hover:bg-brand-gold/5 transition-all cursor-pointer font-medium tracking-wide w-full sm:w-72 flex items-center justify-center"
             >
               <motion.span

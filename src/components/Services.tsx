@@ -53,7 +53,7 @@ export default function Services() {
                   {getTranslation(service.description, i18n.language)}
                 </p>
                 <Link 
-                  to={`/service/${service.id}`}
+                  to={`/service/${service.id}/`}
                   className="mt-auto text-xs uppercase tracking-widest font-bold text-brand-navy hover:text-brand-gold flex items-center gap-2 group-hover:gap-4 transition-all"
                 >
                   {t('common.learnMore')} <Icons.ArrowRight className="w-3 h-3" />

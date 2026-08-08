@@ -1412,7 +1412,7 @@ export default function AdminPortal() {
             <div className="border border-brand-navy/5 rounded-sm divide-y divide-brand-navy/5 overflow-hidden">
               {mergedPostsForSitemapCheck.slice(0, 10).map((post: any) => {
                 const slug = getPostSlug(post);
-                const sitemapLoc = `https://resenlegal.com/blog/${slug}`;
+                const sitemapLoc = `https://resenlegal.com/blog/${slug}/`;
                 const isDraft = post.status === 'draft';
                 const isRegistered = sitemapUrls.includes(sitemapLoc);
 
@@ -3171,7 +3171,7 @@ export default function AdminPortal() {
                         <td className="p-4 text-right pr-6 whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <Link
-                              to={`/blog/${getPostSlug(post)}`}
+                              to={`/blog/${getPostSlug(post)}/`}
                               target="_blank"
                               className="p-2 text-brand-navy/40 hover:text-brand-navy transition-colors bg-brand-navy/5 hover:bg-brand-navy/10 rounded-sm inline-block"
                               title="Live Preview"
@@ -3546,7 +3546,7 @@ export default function AdminPortal() {
           <div className="bg-brand-navy p-8 rounded-sm shadow-xl text-white">
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-6 opacity-40">Quick Management</h4>
             <div className="space-y-4">
-              <Link to="/blog?admin=true" className="flex items-center justify-between p-4 bg-white/5 hover:bg-brand-gold transition-all rounded-sm group">
+              <Link to="/blog/?admin=true" className="flex items-center justify-between p-4 bg-white/5 hover:bg-brand-gold transition-all rounded-sm group">
                 <span className="text-[10px] uppercase tracking-widest font-black">Publish Article</span>
                 <Plus className="w-4 h-4 text-brand-gold group-hover:text-white" />
               </Link>

@@ -20,7 +20,7 @@ export default function TeamPage() {
         title={t('nav.team')}
         description="Meet our expert team of legal professionals at Resen Legal & Consultancy. Excellence, diversity, and commitment to client success."
         keywords="legal team, expert lawyers, immigration lawyers, corporate law experts Turkey, Resen Legal team"
-        canonical="/team"
+        canonical="/team/"
       />
       
       <Navbar />

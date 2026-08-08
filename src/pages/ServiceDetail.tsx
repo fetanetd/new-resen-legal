@@ -96,7 +96,7 @@ export default function ServiceDetail() {
         description={description}
         keywords={`${title}, legal services, expert counsel, Resen Legal, ${i18n.language === 'tr' ? 'hukuki danışmanlık' : 'legal consultancy'}`}
         image="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80"
-        canonical={`/service/${id}`}
+        canonical={`/service/${id}/`}
       />
       <Navbar />
       
@@ -201,7 +201,7 @@ export default function ServiceDetail() {
                   </h3>
                   <div className="space-y-8">
                     {relatedPosts.map(post => (
-                      <Link key={post.id} to={`/blog`} className="group block">
+                      <Link key={post.id} to={`/blog/`} className="group block">
                         <div className="text-brand-gold text-[10px] uppercase tracking-widest font-bold mb-2">
                           {getCategoryTranslation(post.category, i18n.language, firestoreServices)}
                         </div>

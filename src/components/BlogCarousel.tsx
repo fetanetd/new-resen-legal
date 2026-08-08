@@ -70,7 +70,7 @@ export default function BlogCarousel() {
           </div>
 
           <Link 
-            to="/blog"
+            to="/blog/"
             className="group flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-brand-navy/60 hover:text-brand-gold transition-all"
           >
             Explore All Posts
@@ -114,7 +114,7 @@ export default function BlogCarousel() {
                   return (
                     <Link 
                       key={`${post.id}-${offset}`}
-                      to={`/blog/${getPostSlug(post)}`}
+                      to={`/blog/${getPostSlug(post)}/`}
                       className={`group flex flex-col h-full bg-white border border-brand-navy/5 p-8 hover:shadow-2xl hover:shadow-brand-navy/5 transition-all duration-500 overflow-hidden relative cursor-pointer ${
                         offset > 0 ? 'hidden md:flex' : ''
                       } ${offset > 1 ? 'hidden lg:flex' : ''}`}

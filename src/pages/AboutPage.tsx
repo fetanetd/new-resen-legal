@@ -20,7 +20,7 @@ export default function AboutPage() {
         title={t('nav.about')}
         description="Learn more about Resen Legal & Consultancy, our mission, values, and the expert legal team dedicated to providing excellence in legal practice."
         keywords="about Resen Legal, legal mission, legal values, expert lawyers, legal excellence Turkey"
-        canonical="/about"
+        canonical="/about/"
       />
       
       <Navbar />

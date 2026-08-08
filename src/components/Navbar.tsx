@@ -73,13 +73,13 @@ export default function Navbar() {
     if (location.pathname !== '/') {
       const path = location.pathname;
       if (path.startsWith('/about')) {
-        setActiveSection('/about');
+        setActiveSection('/about/');
       } else if (path.startsWith('/services') || path.startsWith('/service/')) {
-        setActiveSection('/services');
+        setActiveSection('/services/');
       } else if (path.startsWith('/team')) {
-        setActiveSection('/team');
+        setActiveSection('/team/');
       } else if (path.startsWith('/blog')) {
-        setActiveSection('/blog');
+        setActiveSection('/blog/');
       } else {
         setActiveSection('');
       }
@@ -104,10 +104,10 @@ export default function Navbar() {
         if (element) {
           const rect = element.getBoundingClientRect();
           if (rect.top <= viewportCenter && rect.bottom >= viewportCenter) {
-            if (id === 'about') currentActive = '/about';
-            else if (id === 'services') currentActive = '/services';
-            else if (id === 'team') currentActive = '/team';
-            else if (id === 'blog-preview') currentActive = '/blog';
+            if (id === 'about') currentActive = '/about/';
+            else if (id === 'services') currentActive = '/services/';
+            else if (id === 'team') currentActive = '/team/';
+            else if (id === 'blog-preview') currentActive = '/blog/';
             else if (id === 'contact') currentActive = '/#contact';
             break;
           }
@@ -124,10 +124,10 @@ export default function Navbar() {
             const distance = Math.abs(rect.top - 100);
             if (rect.top < window.innerHeight && rect.bottom > 0 && distance < minDistance) {
               minDistance = distance;
-              if (id === 'about') currentActive = '/about';
-              else if (id === 'services') currentActive = '/services';
-              else if (id === 'team') currentActive = '/team';
-              else if (id === 'blog-preview') currentActive = '/blog';
+              if (id === 'about') currentActive = '/about/';
+              else if (id === 'services') currentActive = '/services/';
+              else if (id === 'team') currentActive = '/team/';
+              else if (id === 'blog-preview') currentActive = '/blog/';
               else if (id === 'contact') currentActive = '/#contact';
             }
           }
@@ -166,10 +166,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: t('nav.about'), href: '/about' },
-    { name: t('nav.services'), href: '/services' },
-    { name: t('nav.team'), href: '/team' },
-    { name: t('nav.blog'), href: '/blog' },
+    { name: t('nav.about'), href: '/about/' },
+    { name: t('nav.services'), href: '/services/' },
+    { name: t('nav.team'), href: '/team/' },
+    { name: t('nav.blog'), href: '/blog/' },
     { name: t('nav.contact'), href: '/#contact' },
   ];
 

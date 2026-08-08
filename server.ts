@@ -467,22 +467,22 @@ async function startServer() {
     try {
       const staticUrls = [
         "https://resenlegal.com/",
-        "https://resenlegal.com/about",
-        "https://resenlegal.com/services",
-        "https://resenlegal.com/team",
-        "https://resenlegal.com/blog"
+        "https://resenlegal.com/about/",
+        "https://resenlegal.com/services/",
+        "https://resenlegal.com/team/",
+        "https://resenlegal.com/blog/"
       ];
 
       const serviceUrls = [
-        "https://resenlegal.com/service/commercial-corporate-law",
-        "https://resenlegal.com/service/citizenship-immigration-law",
-        "https://resenlegal.com/service/real-estate-property-law",
-        "https://resenlegal.com/service/global-mobility-visa",
-        "https://resenlegal.com/service/inheritance-private-client",
-        "https://resenlegal.com/service/family-matrimonial-law",
-        "https://resenlegal.com/service/data-protection-law",
-        "https://resenlegal.com/service/human-rights-administrative",
-        "https://resenlegal.com/service/labor-employment-law"
+        "https://resenlegal.com/service/commercial-corporate-law/",
+        "https://resenlegal.com/service/citizenship-immigration-law/",
+        "https://resenlegal.com/service/real-estate-property-law/",
+        "https://resenlegal.com/service/global-mobility-visa/",
+        "https://resenlegal.com/service/inheritance-private-client/",
+        "https://resenlegal.com/service/family-matrimonial-law/",
+        "https://resenlegal.com/service/data-protection-law/",
+        "https://resenlegal.com/service/human-rights-administrative/",
+        "https://resenlegal.com/service/labor-employment-law/"
       ];
 
       // Fetch dynamic posts from Firestore
@@ -572,7 +572,7 @@ async function startServer() {
       const processedSlugs = new Set<string>();
 
       allActiveSlugsSet.forEach((slug) => {
-        const locUrl = `https://resenlegal.com/blog/${slug}`;
+        const locUrl = `https://resenlegal.com/blog/${slug}/`;
         if (processedSlugs.has(locUrl)) return;
         processedSlugs.add(locUrl);
 
@@ -686,7 +686,7 @@ async function startServer() {
             const postDate = post.date || "2026-06-16";
             const postKeywords = post.seoKeywords ? `${postTitle}, ${postCategory}, ${post.seoKeywords}` : `${postTitle}, ${postCategory}, legal insights, blog`;
             const postImage = post.image || "https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg";
-            const postCanonical = `https://resenlegal.com/blog/${getPostSlug(post)}`;
+            const postCanonical = `https://resenlegal.com/blog/${getPostSlug(post)}/`;
 
             // Create Article Schema
             const articleStructuredData = {

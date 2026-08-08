@@ -20,7 +20,7 @@ export default function ServicesPage() {
         title={t('nav.services')}
         description="Explore our wide range of specialized legal services including immigration law, corporate consultancy, intellectual property, and GDPR compliance."
         keywords="legal services, immigration consultancy, corporate law, GDPR compliance, intellectual property law Turkey"
-        canonical="/services"
+        canonical="/services/"
       />
       
       <Navbar />

@@ -654,7 +654,7 @@ export default function BlogPostDetail() {
         <SEO 
           title={isTr ? 'Makale Bulunamadı' : 'Article Not Found'}
           description={isTr ? 'Aradığınız hukuki makale bulunamadı.' : 'The requested legal advisory article could not be found.'}
-          canonical={`/blog/${id}`}
+          canonical={`/blog/${id}/`}
         />
         <Navbar />
         <div className="text-center max-w-lg mx-auto py-32 px-6 flex-grow flex flex-col justify-center items-center">
@@ -669,7 +669,7 @@ export default function BlogPostDetail() {
             }
           </p>
           <Link 
-            to="/blog"
+            to="/blog/"
             className="inline-flex items-center gap-2.5 bg-brand-navy text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-brand-gold hover:text-white transition-all shadow-md hover:shadow-xl rounded-sm"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -708,7 +708,7 @@ export default function BlogPostDetail() {
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://resenlegal.com/blog/${getPostSlug(post)}`
+      "@id": `https://resenlegal.com/blog/${getPostSlug(post)}/`
     }
   };
 
@@ -928,7 +928,7 @@ export default function BlogPostDetail() {
         author={author?.name}
         section={postCategory}
         isBlogDetail={true}
-        canonical={`/blog/${getPostSlug(post)}`}
+        canonical={`/blog/${getPostSlug(post)}/`}
         structuredData={articleStructuredData}
         lang={post.language}
         disableSuffix={!!post.metaTitle}
@@ -1011,7 +1011,7 @@ export default function BlogPostDetail() {
           {/* Back to Blog Button */}
           <div className="mb-12 blog-back-button">
             <Link 
-              to="/blog"
+              to="/blog/"
               className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-brand-navy/60 hover:text-brand-gold transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -1441,7 +1441,7 @@ export default function BlogPostDetail() {
                   </h3>
                 </div>
                 <Link 
-                  to="/blog"
+                  to="/blog/"
                   className="text-[10px] uppercase tracking-widest font-black text-brand-gold border-b border-brand-gold/25 pb-2 hover:border-brand-gold transition-all inline-block tracking-[0.25em]"
                 >
                   {t('blogSection.exploreAllPosts')}
@@ -1457,7 +1457,7 @@ export default function BlogPostDetail() {
                     viewport={{ once: true }}
                     className="group flex flex-col h-full bg-white/50 rounded-sm border border-transparent hover:border-brand-gold/20 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-brand-navy/5"
                   >
-                    <Link to={`/blog/${getPostSlug(rPost)}`} className="flex flex-col h-full p-4">
+                    <Link to={`/blog/${getPostSlug(rPost)}/`} className="flex flex-col h-full p-4">
                       <div className="aspect-[16/9] bg-gray-100 rounded-sm overflow-hidden mb-6 relative shrink-0">
                         <img 
                           src={rPost.image || null} 
