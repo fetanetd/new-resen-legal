@@ -577,6 +577,8 @@ async function main() {
             <div class="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">
               <img 
                 src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop" 
+                srcset="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=640&auto=format&fit=crop 640w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=960&auto=format&fit=crop 960w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1280&auto=format&fit=crop 1280w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop 2000w"
+                sizes="(max-width: 1023px) 100vw, 50vw"
                 alt="Legal Library"
                 loading="eager"
                 fetchpriority="high"
