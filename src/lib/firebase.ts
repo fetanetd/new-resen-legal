@@ -5,9 +5,11 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 // @ts-ignore
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, firebaseConfig.firestoreDatabaseId);
+export const db = initializeFirestore(
+  app,
+  {},
+  firebaseConfig.firestoreDatabaseId
+);
 export const auth = getAuth();
 
 export enum OperationType {
