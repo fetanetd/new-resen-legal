@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { SERVICES as MOCK_SERVICES } from '../constants/mockData';
 import { getTranslation } from '../lib/utils';
-import { useFirestoreCollection } from '../hooks/useFirestoreData';
+import { useFirestoreCollectionOnce } from '../hooks/useFirestoreData';
 import { Service } from '../types';
 
 export default function Services() {
   const { t, i18n } = useTranslation();
-  const { data: firestoreServices, loading } = useFirestoreCollection<Service>('services');
+  const { data: firestoreServices, loading } = useFirestoreCollectionOnce<Service>('services');
 
   const services = React.useMemo(() => {
     const merged = [...firestoreServices];

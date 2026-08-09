@@ -4,15 +4,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BlogPost, TeamMember } from '../types';
-import { useFirestoreCollection } from '../hooks/useFirestoreData';
+import { useFirestoreCollectionOnce } from '../hooks/useFirestoreData';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
 import { getTranslation, getPostSlug, getCategoryTranslation, findTeamMember } from '../lib/utils';
 
 export default function BlogCarousel() {
   const { t, i18n } = useTranslation();
-  const { data: firestoreTeam } = useFirestoreCollection<TeamMember>('team');
-  const { data: firestoreBlog } = useFirestoreCollection<BlogPost>('blog');
-  const { data: firestoreServices } = useFirestoreCollection<any>('services');
+  const { data: firestoreTeam } = useFirestoreCollectionOnce<TeamMember>('team');
+  const { data: firestoreBlog } = useFirestoreCollectionOnce<BlogPost>('blog');
+  const { data: firestoreServices } = useFirestoreCollectionOnce<any>('services');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const teamMembers = useMemo(() => {

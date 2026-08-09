@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail } from 'lucide-react';
 import { TEAM as MOCK_TEAM } from '../constants/mockData';
 import { getTranslation } from '../lib/utils';
-import { useFirestoreCollection } from '../hooks/useFirestoreData';
+import { useFirestoreCollectionOnce } from '../hooks/useFirestoreData';
 import { TeamMember } from '../types';
 
 export default function Team() {
   const { t, i18n } = useTranslation();
-  const { data: firestoreTeam } = useFirestoreCollection<TeamMember>('team');
+  const { data: firestoreTeam } = useFirestoreCollectionOnce<TeamMember>('team');
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const team = React.useMemo(() => {
