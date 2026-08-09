@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const BackToTop: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const [showBottom, setShowBottom] = useState(false);
 
-  // Show button when page is scrolled up to given distance
-  const toggleVisibility = () => {
-    if (window.pageYOffset > 300) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
+  const handleScroll = () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    const fullHeight = document.documentElement.scrollHeight;
+
+    setShowTop(scrollTop > 300);
+    setShowBottom(fullHeight > windowHeight + 400 && scrollTop + windowHeight < fullHeight - 300);
   };
 
-  // Set the top cordinate to 0
-  // make scrolling smooth
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -23,28 +22,61 @@ const BackToTop: React.FC = () => {
     });
   };
 
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
   useEffect(() => {
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.button
-          id="back-to-top"
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: 20 }}
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-4 bg-brand-navy text-brand-offwhite rounded-full shadow-2xl hover:bg-brand-gold transition-colors duration-300 group"
-          aria-label="Back to Top"
-        >
-          <ChevronUp className="w-6 h-6 group-hover:-translate-y-1 transition-transform duration-300" />
-        </motion.button>
-      )}
-    </AnimatePresence>
+    <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3.5 items-center pointer-events-none">
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            id="back-to-top"
+            initial={{ opacity: 0, scale: 0.8, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 15 }}
+            onClick={scrollToTop}
+            className="pointer-events-auto p-3.5 bg-brand-navy/90 backdrop-blur-md border border-brand-gold/20 text-brand-offwhite rounded-full shadow-2xl hover:bg-brand-gold hover:text-brand-navy transition-all duration-300 group"
+            aria-label="Back to Top"
+            title="En Üste Dön / Scroll to Top"
+          >
+            <ChevronUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showBottom && (
+          <motion.button
+            id="back-to-bottom"
+            initial={{ opacity: 0, scale: 0.8, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 15 }}
+            onClick={scrollToBottom}
+            className="pointer-events-auto p-3.5 bg-brand-navy/90 backdrop-blur-md border border-brand-gold/20 text-brand-offwhite rounded-full shadow-2xl hover:bg-brand-gold hover:text-brand-navy transition-all duration-300 group"
+            aria-label="Back to Bottom"
+            title="En Alta İnin / Scroll to Bottom"
+          >
+            <ChevronDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform duration-300" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
 export default BackToTop;
+
