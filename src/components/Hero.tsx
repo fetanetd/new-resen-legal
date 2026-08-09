@@ -71,9 +71,9 @@ export default function Hero() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={typeof window !== 'undefined' && window.innerWidth >= 1024 ? { opacity: 0, scale: 0.95 } : { opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={typeof window !== 'undefined' && window.innerWidth >= 1024 ? { duration: 1, delay: 0.2 } : { duration: 0 }}
           className="relative"
         >
           <div className="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">

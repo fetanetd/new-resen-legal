@@ -573,11 +573,14 @@ async function main() {
               </div>
             </div>
           </div>
-          <div class="relative hidden lg:block">
+          <div class="relative">
             <div class="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">
               <img 
                 src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop" 
                 alt="Legal Library"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
                 class="w-full h-full object-cover object-center"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/40 to-transparent"></div>
