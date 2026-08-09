@@ -59,7 +59,7 @@ export default function About() {
                     {item.icon}
                   </div>
                   <div>
-                    <h4 className="text-lg font-serif text-brand-navy mb-2">{item.title}</h4>
+                    <h3 className="text-lg font-serif text-brand-navy mb-2">{item.title}</h3>
                     <p className="text-gray-500 font-light text-sm leading-relaxed">{item.description}</p>
                   </div>
                 </motion.div>

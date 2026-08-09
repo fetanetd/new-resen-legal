@@ -46,6 +46,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, title, content
               <h2 className="text-xl font-serif text-brand-navy font-bold">{title}</h2>
               <button 
                 onClick={onClose}
+                aria-label="Close"
                 className="p-2 hover:bg-brand-offwhite rounded-full transition-colors text-gray-400 hover:text-brand-navy"
               >
                 <X className="w-5 h-5" />

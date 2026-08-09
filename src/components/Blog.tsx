@@ -204,6 +204,7 @@ export default function Blog() {
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
+              aria-label={t('blogSection.sortBy')}
               className="bg-transparent border-none text-[10px] uppercase tracking-widest font-bold text-brand-navy focus:ring-0 cursor-pointer hover:text-brand-gold transition-colors"
             >
               <option value="newest">{t('blogSection.newest')}</option>

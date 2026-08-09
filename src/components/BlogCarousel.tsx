@@ -83,12 +83,14 @@ export default function BlogCarousel() {
           <div className="absolute -top-12 inset-inline-end-0 flex gap-2 rtl:flex-row-reverse">
             <button 
               onClick={prevSlide}
+              aria-label="Previous slide"
               className="p-2 border border-brand-navy/10 hover:border-brand-gold hover:text-brand-gold transition-all text-brand-navy/40 rtl:rotate-180"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button 
               onClick={nextSlide}
+              aria-label="Next slide"
               className="p-2 border border-brand-navy/10 hover:border-brand-gold hover:text-brand-gold transition-all text-brand-navy/40 rtl:rotate-180"
             >
               <ChevronRight className="w-5 h-5" />

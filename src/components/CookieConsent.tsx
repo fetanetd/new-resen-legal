@@ -188,6 +188,7 @@ export default function CookieConsent() {
                     
                     <button
                       onClick={() => setPrefs(prev => ({ ...prev, analytics: !prev.analytics }))}
+                      aria-label={content.categories.analytics.title}
                       className={`relative inline-flex h-3.5 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 focus:outline-none shrink-0 align-middle ${
                         prefs.analytics ? 'bg-brand-navy' : 'bg-brand-navy/20'
                       }`}
@@ -213,6 +214,7 @@ export default function CookieConsent() {
 
                     <button
                       onClick={() => setPrefs(prev => ({ ...prev, marketing: !prev.marketing }))}
+                      aria-label={content.categories.marketing.title}
                       className={`relative inline-flex h-3.5 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 focus:outline-none shrink-0 align-middle ${
                         prefs.marketing ? 'bg-brand-navy' : 'bg-brand-navy/20'
                       }`}

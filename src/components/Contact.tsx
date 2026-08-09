@@ -213,9 +213,10 @@ export default function Contact() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('form.legalDepartment')}</label>
+                <label htmlFor="contact-department" className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-brand-navy">{t('form.legalDepartment')}</label>
                 <div className="relative">
                   <select 
+                    id="contact-department"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className="w-full border-b border-theme-border py-3 bg-transparent focus:border-brand-gold outline-none transition-all font-light appearance-none text-brand-navy"
