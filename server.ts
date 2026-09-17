@@ -645,7 +645,7 @@ async function startServer() {
     app.use(express.static(distPath));
     app.get('*', async (req, res) => {
       // Check if it is a blog detail page
-      const match = req.path.match(/^\/blog\/([^/]+)$/);
+      const match = req.path.match(/^\/blog\/([^/]+)\/?$/);
       if (match) {
         const targetSlug = match[1].trim().toLowerCase();
         try {
@@ -675,6 +675,12 @@ async function startServer() {
           });
 
           if (post) {
+            const canonicalSlug = getPostSlug(post).trim().toLowerCase();
+            // If accessed via non-canonical ID, legacy alias, or missing trailing slash: 301 redirect
+            if (targetSlug !== canonicalSlug || !req.path.endsWith('/')) {
+              return res.redirect(301, `/blog/${canonicalSlug}/`);
+            }
+
             // Read index.html template from dist directory
             let html = await fs.promises.readFile(path.join(distPath, 'index.html'), 'utf-8');
 

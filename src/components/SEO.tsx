@@ -18,6 +18,7 @@ interface SEOProps {
   isBlogDetail?: boolean;
   lang?: string;
   disableSuffix?: boolean;
+  noIndex?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -33,7 +34,8 @@ const SEO: React.FC<SEOProps> = ({
   structuredData,
   isBlogDetail,
   lang,
-  disableSuffix
+  disableSuffix,
+  noIndex
 }) => {
   const { i18n } = useTranslation();
   const [dynamicSettings, setDynamicSettings] = useState<any>(null);
@@ -67,6 +69,7 @@ const SEO: React.FC<SEOProps> = ({
   return (
     <Helmet>
       {/* Primary Meta Tags */}
+      {noIndex && <meta name="robots" content="noindex, nofollow" />}
       <title>{fullTitle}</title>
       <meta name="title" content={fullTitle} />
       <meta name="description" content={metaDescription} />

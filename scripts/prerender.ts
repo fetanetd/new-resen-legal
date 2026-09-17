@@ -411,16 +411,6 @@ async function main() {
       fs.mkdirSync(postDir, { recursive: true });
     }
     fs.writeFileSync(path.join(postDir, "index.html"), html, "utf-8");
-
-    // Also write to dist/blog/:id/index.html if id is different from slug
-    const postId = (post.id || "").toString().trim().toLowerCase();
-    if (postId && postId !== slug) {
-      const idDir = path.join(distPath, "blog", postId);
-      if (!fs.existsSync(idDir)) {
-        fs.mkdirSync(idDir, { recursive: true });
-      }
-      fs.writeFileSync(path.join(idDir, "index.html"), html, "utf-8");
-    }
   }
 
   // Prerender Services
@@ -1004,8 +994,14 @@ async function main() {
   xml += `</urlset>\n`;
 
   fs.writeFileSync(path.join(distPath, "sitemap.xml"), xml, "utf-8");
-  console.log("Sitemap.xml generated successfully in dist/ directory.");
+  try {
+    fs.writeFileSync(path.join(process.cwd(), "public", "sitemap.xml"), xml, "utf-8");
+  } catch (e) {
+    // Non-critical if public is read-only
+  }
+  console.log("Sitemap.xml generated successfully in dist/ and public/ directories.");
   console.log("Prerendering completed successfully!");
+  process.exit(0);
 }
 
 main().catch((err) => {

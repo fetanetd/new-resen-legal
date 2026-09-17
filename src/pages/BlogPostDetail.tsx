@@ -193,6 +193,12 @@ export default function BlogPostDetail() {
           setPost(postData);
           setLoading(false);
 
+          // If accessed via non-canonical numeric ID or document ID, normalize route to canonical slug
+          const canonicalSlug = getPostSlug(postData);
+          if (canonicalSlug && targetId !== canonicalSlug.toLowerCase()) {
+            navigate(`/blog/${canonicalSlug}/`, { replace: true });
+          }
+
           // Increment view count in Firebase Firestore if stored there
           const isMock = MOCK_BLOG.some(p => p.id === postData?.id) && !firestoreBlog.some(p => p.id === postData?.id);
           if (!isMock && postData.id) {
@@ -654,7 +660,8 @@ export default function BlogPostDetail() {
         <SEO 
           title={isTr ? 'Makale Bulunamadı' : 'Article Not Found'}
           description={isTr ? 'Aradığınız hukuki makale bulunamadı.' : 'The requested legal advisory article could not be found.'}
-          canonical={`/blog/${id}/`}
+          canonical="/blog/"
+          noIndex
         />
         <Navbar />
         <div className="text-center max-w-lg mx-auto py-32 px-6 flex-grow flex flex-col justify-center items-center">
