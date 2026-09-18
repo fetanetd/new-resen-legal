@@ -99,6 +99,18 @@ function formatSitemapDate(dateVal: any): string {
   }
 }
 
+function isPostPublishedPrerender(post: any): boolean {
+  if (!post) return false;
+  if (post.status === "draft") return false;
+  if (post.status === "scheduled") {
+    if (!post.publishAt) return false;
+    const pubTime = new Date(post.publishAt).getTime();
+    if (isNaN(pubTime)) return false;
+    return pubTime <= Date.now();
+  }
+  return true;
+}
+
 // Timeout wrap for firestore calls to ensure build never hangs
 const withTimeout = <T>(promise: Promise<T>, ms: number = 15000): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
@@ -183,7 +195,7 @@ async function main() {
 
   // Prerender Blog posts
   console.log("Prerendering blog detail pages...");
-  const publishedPosts = mergedPosts.filter((post) => (post as any).status !== "draft");
+  const publishedPosts = mergedPosts.filter((post) => isPostPublishedPrerender(post));
   
   for (const post of publishedPosts) {
     const slug = getPostSlug(post);

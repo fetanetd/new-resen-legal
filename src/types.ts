@@ -37,4 +37,6 @@ export interface BlogPost {
   metaDescription?: string;
   imageAlt?: string;
   metaTitle?: string;
+  status?: "published" | "draft" | "scheduled";
+  publishAt?: string;
 }

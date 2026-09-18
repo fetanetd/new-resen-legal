@@ -5,10 +5,12 @@ import SEO from '../components/SEO';
 import { motion, useScroll, useSpring, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Calendar, User, Tag, Share2, Clock, ArrowRight, Facebook, Linkedin, X, Link as LinkIcon, Check, BookOpen, Layers, MapPin, ChevronDown, Type } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { isAdminEmail } from '../constants/auth';
 import { BlogPost, TeamMember } from '../types';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
-import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember } from '../lib/utils';
+import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember, isPostPublished } from '../lib/utils';
 import { useFirestoreCollection } from '../hooks/useFirestoreData';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -22,6 +24,14 @@ export default function BlogPostDetail() {
   const [showCopyFeedback, setShowCopyFeedback] = useState(false);
   const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
   const [instantClose, setInstantClose] = useState(false);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => setCurrentUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  const isAdmin = isAdminEmail(currentUser?.email);
 
   const [fontSize, setFontSizeState] = useState<'14px' | '16px' | '18px'>(() => {
     return (localStorage.getItem('preferred-blog-font-size') as '14px' | '16px' | '18px') || '14px';
@@ -114,8 +124,8 @@ export default function BlogPostDetail() {
       }
     });
 
-    // Remove current post and drafts
-    const otherPosts = merged.filter(p => p.id !== post.id && (p as any).status !== 'draft');
+    // Remove current post, drafts, and future scheduled posts
+    const otherPosts = merged.filter(p => p.id !== post.id && isPostPublished(p));
 
     // Try same category
     let related = otherPosts
@@ -197,6 +207,16 @@ export default function BlogPostDetail() {
         }
 
         if (postData) {
+          // If the post is not published (draft or scheduled for future), hide it from public visitors
+          const isPublished = isPostPublished(postData);
+          const isUserAdmin = isAdminEmail(auth.currentUser?.email || currentUser?.email);
+
+          if (!isPublished && !isUserAdmin) {
+            setPost(null);
+            setLoading(false);
+            return;
+          }
+
           setPost(postData);
           setLoading(false);
 
@@ -949,6 +969,17 @@ export default function BlogPostDetail() {
       />
       
       <Navbar />
+
+      {isAdmin && !isPostPublished(post) && (
+        <div className="bg-amber-600 text-white text-center py-2.5 px-4 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 sticky top-0 z-50 shadow-md">
+          <Clock className="w-4 h-4 text-amber-200 shrink-0" />
+          <span>
+            {(post as any).status === 'draft'
+              ? 'YÖNETİCİ ÖNİZLEMESİ: Bu makale henüz TASLAK durumundadır ve ziyaretçilere gösterilmemektedir.'
+              : `YÖNETİCİ ÖNİZLEMESİ: Bu makale ${post.publishAt ? new Date(post.publishAt).toLocaleString('tr-TR') : 'belirlenen tarihte'} yayınlanmak üzere ZAMANLANMIŞTIR.`}
+          </span>
+        </div>
+      )}
 
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-brand-gold z-50 origin-left"

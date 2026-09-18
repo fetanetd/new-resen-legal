@@ -5,7 +5,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
 import { BLOG_POSTS as MOCK_BLOG } from "./src/constants/mockData.js";
 
 dotenv.config();
@@ -100,6 +100,18 @@ function formatSitemapDate(dateVal: any): string {
   } catch {
     return "2026-06-16";
   }
+}
+
+function isPostPublishedServer(post: any): boolean {
+  if (!post) return false;
+  if (post.status === "draft") return false;
+  if (post.status === "scheduled") {
+    if (!post.publishAt) return false;
+    const pubTime = new Date(post.publishAt).getTime();
+    if (isNaN(pubTime)) return false;
+    return pubTime <= Date.now();
+  }
+  return true;
 }
 
 // Read and parse Firebase configuration from file
@@ -229,6 +241,92 @@ async function startServer() {
       res.status(500).json({ error: "Failed to generate draft" });
     }
   });
+
+  // Endpoint to check and publish scheduled blog posts
+  app.all("/api/publish-scheduled", async (req, res) => {
+    if (!firebaseDb) {
+      return res.status(500).json({ error: "Firestore is not initialized on server" });
+    }
+
+    try {
+      const snap = await getDocs(collection(firebaseDb, "blog"));
+      const nowTime = Date.now();
+      const publishedIds: string[] = [];
+
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        if (data.status === "scheduled" && data.publishAt) {
+          const pubTime = new Date(data.publishAt).getTime();
+          if (!isNaN(pubTime) && pubTime <= nowTime) {
+            await updateDoc(doc(firebaseDb, "blog", docSnap.id), {
+              status: "published",
+              updatedAt: new Date().toISOString()
+            });
+            publishedIds.push(docSnap.id);
+            console.log(`[Scheduled Cron] Published article ${docSnap.id}`);
+          }
+        }
+      }
+
+      let triggeredDeploy = false;
+      if (publishedIds.length > 0) {
+        const deployHook = process.env.CLOUDFLARE_DEPLOY_HOOK_URL || process.env.VITE_DEPLOY_HOOK_URL;
+        if (deployHook) {
+          try {
+            const hookRes = await fetch(deployHook, { method: "POST" });
+            triggeredDeploy = hookRes.ok;
+          } catch (e) {
+            console.error("Deploy hook failed:", e);
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        publishedCount: publishedIds.length,
+        publishedIds,
+        triggeredDeploy
+      });
+    } catch (err: any) {
+      console.error("Error publishing scheduled posts:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Background interval check for scheduled posts
+  if (firebaseDb) {
+    setInterval(async () => {
+      try {
+        const snap = await getDocs(collection(firebaseDb, "blog"));
+        const nowTime = Date.now();
+        const publishedIds: string[] = [];
+
+        for (const docSnap of snap.docs) {
+          const data = docSnap.data();
+          if (data.status === "scheduled" && data.publishAt) {
+            const pubTime = new Date(data.publishAt).getTime();
+            if (!isNaN(pubTime) && pubTime <= nowTime) {
+              await updateDoc(doc(firebaseDb, "blog", docSnap.id), {
+                status: "published",
+                updatedAt: new Date().toISOString()
+              });
+              publishedIds.push(docSnap.id);
+              console.log(`[Scheduled Background] Published article ${docSnap.id}`);
+            }
+          }
+        }
+
+        if (publishedIds.length > 0) {
+          const deployHook = process.env.CLOUDFLARE_DEPLOY_HOOK_URL || process.env.VITE_DEPLOY_HOOK_URL;
+          if (deployHook) {
+            fetch(deployHook, { method: "POST" }).catch(e => console.error("Deploy hook err:", e));
+          }
+        }
+      } catch (err) {
+        console.error("Background scheduled check error:", err);
+      }
+    }, 5 * 60 * 1000);
+  }
 
   app.post("/api/ai/summarize", async (req, res) => {
     if (!checkApiKey(res)) return;
@@ -507,8 +605,8 @@ async function startServer() {
         }
       });
 
-      // Filter out drafts
-      const publishedPosts = mergedPosts.filter((post) => (post as any).status !== "draft");
+      // Filter out drafts and future-scheduled posts
+      const publishedPosts = mergedPosts.filter((post) => isPostPublishedServer(post));
 
       const today = "2026-06-16";
 
@@ -564,7 +662,7 @@ async function startServer() {
       const allActiveSlugsSet = new Set<string>(verifiedSlugs);
       publishedPosts.forEach((post) => {
         const slug = getPostSlug(post);
-        if (slug && slug !== "[slug]" && (post as any).status !== "draft") {
+        if (slug && slug !== "[slug]" && isPostPublishedServer(post)) {
           allActiveSlugsSet.add(slug);
         }
       });

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { BlogPost, TeamMember } from '../types';
 import { useFirestoreCollectionOnce } from '../hooks/useFirestoreData';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
-import { getTranslation, getPostSlug, getCategoryTranslation, findTeamMember } from '../lib/utils';
+import { getTranslation, getPostSlug, getCategoryTranslation, findTeamMember, isPostPublished } from '../lib/utils';
 
 export default function BlogCarousel() {
   const { t, i18n } = useTranslation();
@@ -42,8 +42,8 @@ export default function BlogCarousel() {
   }, [firestoreTeam]);
 
   const posts = useMemo(() => {
-    // Filter out draft publications
-    const published = firestoreBlog.filter(post => (post as any).status !== 'draft');
+    // Filter out draft and future scheduled publications
+    const published = firestoreBlog.filter(post => isPostPublished(post));
     return [...published].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
   }, [firestoreBlog]);
 

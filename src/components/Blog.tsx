@@ -8,7 +8,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { isAdminEmail } from '../constants/auth';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
-import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember } from '../lib/utils';
+import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember, isPostPublished } from '../lib/utils';
 import { useFirestoreCollection } from '../hooks/useFirestoreData';
 import { BlogPost, TeamMember } from '../types';
 import BlogForm from './BlogForm';
@@ -70,8 +70,8 @@ export default function Blog() {
   const isAdmin = isAdminEmail(user?.email);
   
   const allPosts = useMemo(() => {
-    // Exclude draft publications from client-facing lists
-    return firestoreBlog.filter(post => (post as any).status !== 'draft');
+    // Exclude draft publications and future scheduled publications from client-facing lists
+    return firestoreBlog.filter(post => isPostPublished(post));
   }, [firestoreBlog]);
 
   const categories = useMemo(() => {

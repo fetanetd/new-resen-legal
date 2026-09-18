@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn, getCategoryTranslation, getPostSlug, findTeamMember, getTranslation } from '../lib/utils';
+import { cn, getCategoryTranslation, getPostSlug, findTeamMember, getTranslation, isPostPublished, isPostScheduledFuture } from '../lib/utils';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { isAdminEmail } from '../constants/auth';
@@ -822,7 +822,7 @@ export default function AdminPortal() {
   const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
   const [blogSearchQuery, setBlogSearchQuery] = useState('');
   const [blogSelectedCategory, setBlogSelectedCategory] = useState('');
-  const [blogSelectedStatus, setBlogSelectedStatus] = useState<'' | 'published' | 'draft'>('');
+  const [blogSelectedStatus, setBlogSelectedStatus] = useState<'' | 'published' | 'draft' | 'scheduled'>('');
   const [selectedSharePost, setSelectedSharePost] = useState<any | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -1427,7 +1427,7 @@ export default function AdminPortal() {
             </div>
             <div className="bg-brand-offwhite p-6 border border-brand-navy/5 rounded-sm">
               <div className="text-2xl font-serif text-brand-navy font-bold">
-                {mergedPostsForSitemapCheck.filter(p => (p as any).status !== 'draft').length}
+                {mergedPostsForSitemapCheck.filter(p => isPostPublished(p)).length}
               </div>
               <div className="text-[9px] text-brand-navy/40 uppercase tracking-widest font-black mt-1 font-bold">Published Articles</div>
             </div>
@@ -1449,6 +1449,8 @@ export default function AdminPortal() {
                 const slug = getPostSlug(post);
                 const sitemapLoc = `https://resenlegal.com/blog/${slug}/`;
                 const isDraft = post.status === 'draft';
+                const isScheduledFuture = isPostScheduledFuture(post);
+                const isPublished = isPostPublished(post);
                 const isRegistered = sitemapUrls.includes(sitemapLoc);
 
                 return (
@@ -1472,6 +1474,10 @@ export default function AdminPortal() {
                         <span className="text-[9px] uppercase tracking-widest font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded-sm">
                           Draft
                         </span>
+                      ) : isScheduledFuture ? (
+                        <span className="text-[9px] uppercase tracking-widest font-bold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-sm">
+                          Scheduled
+                        </span>
                       ) : (
                         <span className="text-[9px] uppercase tracking-widest font-bold px-2 py-1 bg-green-50 text-green-700 rounded-sm">
                           Published
@@ -1481,6 +1487,10 @@ export default function AdminPortal() {
                       {isDraft ? (
                         <span className="text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 text-gray-400 border border-dashed border-gray-200 rounded-sm flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" /> Excluded (Draft)
+                        </span>
+                      ) : isScheduledFuture ? (
+                        <span className="text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 text-indigo-500 border border-dashed border-indigo-200 rounded-sm flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> Excluded (Scheduled)
                         </span>
                       ) : isRegistered ? (
                         <span className="text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 bg-green-50 text-green-600 border border-green-200 rounded-sm flex items-center gap-1">
@@ -2965,7 +2975,8 @@ export default function AdminPortal() {
     });
 
     // Stats
-    const totalPublished = mergedPosts.filter(p => (p as any).status !== 'draft').length;
+    const totalPublished = mergedPosts.filter(p => (p as any).status !== 'draft' && (p as any).status !== 'scheduled').length;
+    const totalScheduled = mergedPosts.filter(p => (p as any).status === 'scheduled').length;
     const totalDrafts = mergedPosts.filter(p => (p as any).status === 'draft').length;
     const dbArticles = firestoreBlog.length;
     const totalCategoriesCount = uniqueCategories.length;
@@ -3030,6 +3041,17 @@ export default function AdminPortal() {
           </div>
 
           <div className="bg-white p-6 border border-brand-navy/5 rounded-sm shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full flex items-center justify-center transition-transform group-hover:scale-110">
+              <Clock className="w-5 h-5 text-indigo-500" />
+            </div>
+            <p className="text-[9px] uppercase tracking-[0.2em] font-black text-brand-navy/40">Scheduled Queue</p>
+            <h4 className="text-3xl font-serif text-indigo-600 mt-2">{totalScheduled} <span className="text-xs font-sans text-brand-navy/50 ml-1 font-light">scheduled</span></h4>
+            <div className="text-[10px] text-brand-navy/40 mt-3 font-medium">
+              Automated timed releases
+            </div>
+          </div>
+
+          <div className="bg-white p-6 border border-brand-navy/5 rounded-sm shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-bl-full flex items-center justify-center transition-transform group-hover:scale-110">
               <AlertCircle className="w-5 h-5 text-orange-400" />
             </div>
@@ -3048,20 +3070,6 @@ export default function AdminPortal() {
             <h4 className="text-3xl font-serif text-brand-navy mt-2">{totalCategoriesCount}</h4>
             <div className="text-[10px] text-brand-navy/40 mt-3 font-medium">
               Targeted practice categories
-            </div>
-          </div>
-
-          <div className="bg-white p-6 border border-brand-navy/5 rounded-sm shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full flex items-center justify-center transition-transform group-hover:scale-110">
-              <Sparkles className="w-5 h-5 text-emerald-600/60" />
-            </div>
-            <p className="text-[9px] uppercase tracking-[0.2em] font-black text-brand-navy/40">CMS Editorial Status</p>
-            <h4 className="text-lg font-bold text-emerald-600 mt-4 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Fully Equipped
-            </h4>
-            <div className="text-[10px] text-brand-navy/40 mt-3 font-medium">
-              Rich-WYSIWYG & Auto Backup Active
             </div>
           </div>
         </div>
@@ -3100,9 +3108,10 @@ export default function AdminPortal() {
                 onChange={e => setBlogSelectedStatus(e.target.value as any)}
                 className="px-4 py-2 bg-brand-navy/[0.02] border border-brand-navy/10 rounded-sm focus:border-brand-gold outline-none text-xs text-brand-navy font-light cursor-pointer"
               >
-                <option value="">All Statuses</option>
-                <option value="published">Only Published</option>
-                <option value="draft">Only Drafts</option>
+                <option value="">All Statuses ({mergedPosts.length})</option>
+                <option value="published">Only Published ({totalPublished})</option>
+                <option value="scheduled">Only Scheduled ({totalScheduled})</option>
+                <option value="draft">Only Drafts ({totalDrafts})</option>
               </select>
 
               { (blogSearchQuery || blogSelectedCategory || blogSelectedStatus) && (
@@ -3144,6 +3153,7 @@ export default function AdminPortal() {
                     const excerptText = getPostExcerpt(post);
                     const isSystemMock = MOCK_BLOG.some(p => p.id === post.id) && !firestoreBlog.some(p => p.id === post.id);
                     const isDraft = (post as any).status === 'draft';
+                    const isScheduled = (post as any).status === 'scheduled';
 
                     return (
                       <tr key={post.id} className="hover:bg-brand-navy/[0.01] transition-colors group">
@@ -3176,8 +3186,22 @@ export default function AdminPortal() {
                         <td className="p-4 text-[11px] font-medium text-brand-navy/60 whitespace-nowrap">
                           {findTeamMember(post.authorId, teamMembers)?.name || post.authorId || 'Anonymous'}
                         </td>
-                        <td className="p-4 font-mono text-[10px] text-brand-navy/50 whitespace-nowrap">
-                          {formatDateDMY(post.date)}
+                        <td className="p-4 whitespace-nowrap">
+                          {isScheduled && post.publishAt ? (
+                            <div className="space-y-0.5">
+                              <div className="font-mono text-[10px] text-indigo-700 font-bold flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-indigo-500" />
+                                {new Date(post.publishAt).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </div>
+                              <div className="text-[9px] font-mono text-indigo-500/70">
+                                {new Date(post.publishAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="font-mono text-[10px] text-brand-navy/50">
+                              {formatDateDMY(post.date)}
+                            </span>
+                          )}
                         </td>
                         <td className="p-4 whitespace-nowrap">
                           <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-brand-navy/70">
@@ -3191,6 +3215,18 @@ export default function AdminPortal() {
                               <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                               TASLAK (DRAFT)
                             </span>
+                          ) : isScheduled ? (
+                            <div className="space-y-1">
+                              <span className="text-[8.5px] uppercase tracking-widest font-black text-indigo-700 bg-indigo-50 px-2 py-1 rounded-sm border border-indigo-200 flex items-center gap-1.5 w-max">
+                                <Clock className="w-3 h-3 text-indigo-600" />
+                                ZAMANLANDI
+                              </span>
+                              {post.publishAt && (
+                                <p className="text-[8px] font-mono text-indigo-900/60">
+                                  {new Date(post.publishAt).toLocaleDateString('tr-TR')} {new Date(post.publishAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              )}
+                            </div>
                           ) : isSystemMock ? (
                             <span className="text-[9px] uppercase tracking-widest font-black text-brand-navy/30 flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-brand-navy/30" />

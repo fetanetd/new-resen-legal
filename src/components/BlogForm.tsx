@@ -108,7 +108,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
     language: 'tr',
     slug: '',
     imageAlt: '',
-    metaTitle: ''
+    metaTitle: '',
+    status: 'published' as 'published' | 'draft' | 'scheduled',
+    publishAt: ''
   });
 
   const [translations, setTranslations] = useState<{
@@ -205,7 +207,9 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
            language: parsed.language || 'tr',
            slug: parsed.slug || '',
            imageAlt: parsed.imageAlt || '',
-           metaTitle: parsed.metaTitle || ''
+           metaTitle: parsed.metaTitle || '',
+           status: (parsed.status as any) || 'published',
+           publishAt: parsed.publishAt || ''
          });
         setHasBackup(false);
       } catch (e) {
@@ -586,6 +590,27 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         initialCategory = matchedService.title.en;
       }
 
+      const initialStatus: 'published' | 'draft' | 'scheduled' = 
+        (initialData as any)?.status === 'scheduled' ? 'scheduled' : 
+        (initialData as any)?.status === 'draft' ? 'draft' : 'published';
+
+      let initialPublishAt = '';
+      if ((initialData as any)?.publishAt) {
+        try {
+          const d = new Date((initialData as any).publishAt);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            initialPublishAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+          }
+        } catch {
+          initialPublishAt = '';
+        }
+      }
+
       setFormData({
         title: titleText,
         excerpt: excerptText,
@@ -599,12 +624,20 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         language: initialLang,
         slug: initialData.slug || '',
         imageAlt: (initialData as any).imageAlt || '',
-        metaTitle: (initialData as any).metaTitle || ''
+        metaTitle: (initialData as any).metaTitle || '',
+        status: initialStatus,
+        publishAt: initialPublishAt
       });
       setSeoResult(null);
     } else {
       setUseHtmlMode(false);
       setTranslations({ title: {}, excerpt: {}, content: {} });
+      
+      // Default scheduled time suggestion: tomorrow at 09:00
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      tomorrow.setHours(9, 0, 0, 0);
+      const defaultPublishAt = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}T09:00`;
+
       setFormData({
         title: '',
         excerpt: '',
@@ -618,20 +651,23 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         language: 'tr',
         slug: '',
         imageAlt: '',
-        metaTitle: ''
+        metaTitle: '',
+        status: 'published',
+        publishAt: defaultPublishAt
       });
       setSeoResult(null);
     }
   }, [initialData, isOpen]);
 
-  const handleSubmit = async (e?: React.FormEvent, statusOverride?: 'published' | 'draft') => {
+  const handleSubmit = async (e?: React.FormEvent, statusOverride?: 'published' | 'draft' | 'scheduled') => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     setH1Notice(null);
 
-    const resolvedStatus = statusOverride || (initialData as any)?.status || 'published';
+    const resolvedStatus = statusOverride || formData.status || (initialData as any)?.status || 'published';
     const isPublished = resolvedStatus === 'published';
+    const isScheduled = resolvedStatus === 'scheduled';
 
     try {
       const finalTitle = {
@@ -655,11 +691,11 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
       if (!finalContent.en && finalContent.tr) finalContent.en = finalContent.tr;
       if (!finalContent.tr && finalContent.en) finalContent.tr = finalContent.en;
 
-      const rawSlugInput = formData.slug ? formData.slug : (finalTitle.tr || finalTitle.en || formData.title || (isPublished ? '' : 'post'));
+      const rawSlugInput = formData.slug ? formData.slug : (finalTitle.tr || finalTitle.en || formData.title || (isPublished || isScheduled ? '' : 'post'));
       const computedSlug = generateSlug(rawSlugInput);
 
-      // Publishing validation guards
-      if (isPublished) {
+      // Publishing & Scheduling validation guards
+      if (isPublished || isScheduled) {
         const missingFields: string[] = [];
 
         const hasTitle = Boolean(
@@ -697,11 +733,15 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
           missingFields.push(i18n.language === 'tr' ? 'URL Slug' : 'URL Slug');
         }
 
+        if (isScheduled && (!formData.publishAt || !formData.publishAt.trim())) {
+          missingFields.push(i18n.language === 'tr' ? 'Yayın Tarihi & Saati' : 'Publication Date & Time');
+        }
+
         if (missingFields.length > 0) {
           setError(
             i18n.language === 'tr'
-              ? `Yayınlamadan önce lütfen zorunlu alanları doldurunuz: ${missingFields.join(', ')}.`
-              : `Please fill in all required fields before publishing: ${missingFields.join(', ')}.`
+              ? `İşleme devam etmeden önce lütfen zorunlu alanları doldurunuz: ${missingFields.join(', ')}.`
+              : `Please fill in all required fields before proceeding: ${missingFields.join(', ')}.`
           );
           setIsSubmitting(false);
           return;
@@ -712,6 +752,19 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
           setError('Slug cannot be numeric only. Please use descriptive words, for example: ingilterede-sirket-kurulusu.');
           setIsSubmitting(false);
           return;
+        }
+
+        if (isScheduled && formData.publishAt) {
+          const scheduleTime = new Date(formData.publishAt).getTime();
+          if (isNaN(scheduleTime)) {
+            setError(
+              i18n.language === 'tr'
+                ? 'Geçersiz planlama tarihi. Lütfen geçerli bir tarih ve saat seçiniz.'
+                : 'Invalid scheduled date/time. Please select a valid date and time.'
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
 
@@ -736,6 +789,13 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         setFormData(prev => ({ ...prev, content: convertedCurrent }));
       }
 
+      let finalPublishAt = '';
+      if (isScheduled && formData.publishAt) {
+        finalPublishAt = new Date(formData.publishAt).toISOString();
+      } else if (resolvedStatus === 'scheduled' && (initialData as any)?.publishAt) {
+        finalPublishAt = (initialData as any).publishAt;
+      }
+
       const dbData = {
         title: finalTitle,
         excerpt: finalExcerpt,
@@ -743,10 +803,11 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         image: formData.image,
         category: formData.category,
         authorId: formData.authorId,
-        date: formData.date,
+        date: formData.publishAt ? formData.publishAt.split('T')[0] : formData.date,
         seoMeta: formData.seoMeta || '',
         seoKeywords: formData.seoKeywords || '',
         status: resolvedStatus,
+        publishAt: finalPublishAt,
         language: formData.language || 'tr',
         slug: computedSlug || 'post',
         imageAlt: formData.imageAlt || '',
@@ -1696,6 +1757,177 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                   </div>
                 </div>
               )}
+
+              {/* Publication Mode & Scheduling Section */}
+              <div className="bg-brand-offwhite/80 p-5 sm:p-6 border border-brand-navy/10 rounded-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="text-[11px] uppercase tracking-widest font-black text-brand-navy flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-brand-gold" />
+                      {i18n.language === 'tr' ? 'Yayınlanma Tercihi ve Durumu' : 'Publication Mode & Schedule'}
+                    </label>
+                    <p className="text-[10px] text-brand-navy/50 font-light mt-0.5">
+                      {i18n.language === 'tr'
+                        ? 'Yazıyı hemen yayınlayabilir, taslak olarak saklayabilir veya ileri bir tarihe planlayabilirsiniz.'
+                        : 'Publish immediately, save as draft, or schedule for an automated future release.'}
+                    </p>
+                  </div>
+                  {formData.status === 'scheduled' && (
+                    <span className="self-start sm:self-auto text-[9px] uppercase tracking-widest font-black px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                      {i18n.language === 'tr' ? 'Zamanlanmış Yayın Modu' : 'Scheduled Mode'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Status Mode Selectors */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status: 'published' }))}
+                    className={`p-3.5 rounded-sm border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                      formData.status === 'published'
+                        ? 'border-brand-gold bg-white shadow-sm ring-1 ring-brand-gold/30'
+                        : 'border-brand-navy/10 bg-white/50 hover:bg-white hover:border-brand-navy/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-brand-navy">
+                        {i18n.language === 'tr' ? 'Hemen Yayınla' : 'Publish Now'}
+                      </span>
+                      <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${formData.status === 'published' ? 'border-brand-gold bg-brand-gold' : 'border-brand-navy/20'}`}>
+                        {formData.status === 'published' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-brand-navy/50 font-light">
+                      {i18n.language === 'tr' ? 'Kaydedildiği anda sitede ve sitemap indeksinde canlıya alınır.' : 'Goes live on the website and sitemap immediately.'}
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status: 'draft' }))}
+                    className={`p-3.5 rounded-sm border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                      formData.status === 'draft'
+                        ? 'border-amber-500 bg-white shadow-sm ring-1 ring-amber-500/30'
+                        : 'border-brand-navy/10 bg-white/50 hover:bg-white hover:border-brand-navy/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-800">
+                        {i18n.language === 'tr' ? 'Taslak Olarak Sakla' : 'Save as Draft'}
+                      </span>
+                      <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${formData.status === 'draft' ? 'border-amber-500 bg-amber-500' : 'border-brand-navy/20'}`}>
+                        {formData.status === 'draft' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-brand-navy/50 font-light">
+                      {i18n.language === 'tr' ? 'Sadece admin panelinde görünür; sitede veya aramada yer almaz.' : 'Only visible in admin panel; hidden from public and search engines.'}
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => {
+                        let publishAt = prev.publishAt;
+                        if (!publishAt) {
+                          const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                          tomorrow.setHours(9, 0, 0, 0);
+                          publishAt = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}T09:00`;
+                        }
+                        return { ...prev, status: 'scheduled', publishAt };
+                      });
+                    }}
+                    className={`p-3.5 rounded-sm border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                      formData.status === 'scheduled'
+                        ? 'border-indigo-500 bg-white shadow-sm ring-1 ring-indigo-500/30'
+                        : 'border-brand-navy/10 bg-white/50 hover:bg-white hover:border-brand-navy/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-indigo-900">
+                        {i18n.language === 'tr' ? 'Yayını Zamanla' : 'Schedule Publication'}
+                      </span>
+                      <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${formData.status === 'scheduled' ? 'border-indigo-500 bg-indigo-500' : 'border-brand-navy/20'}`}>
+                        {formData.status === 'scheduled' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-brand-navy/50 font-light">
+                      {i18n.language === 'tr' ? 'Belirlenen tarih/saat geldiğinde otomatik olarak yayınlanır.' : 'Automatically goes live at your chosen future date and time.'}
+                    </p>
+                  </button>
+                </div>
+
+                {/* Scheduled Date/Time Picker */}
+                {formData.status === 'scheduled' && (
+                  <div className="mt-3 p-4 bg-white border border-indigo-100 rounded-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-black text-indigo-900 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                          {i18n.language === 'tr' ? 'Otomatik Yayın Tarihi ve Saati' : 'Scheduled Release Date & Time'}
+                        </label>
+                        <p className="text-[10px] text-brand-navy/40 font-light">
+                          {i18n.language === 'tr'
+                            ? 'Tarih geldiğinde sistem makaleyi yayınlandı durumuna geçirir ve deploy tetikler.'
+                            : 'When reached, background scheduled job updates status to published and triggers deploy.'}
+                        </p>
+                      </div>
+
+                      <input
+                        type="datetime-local"
+                        required
+                        value={formData.publishAt}
+                        onChange={e => setFormData(prev => ({ ...prev, publishAt: e.target.value }))}
+                        className="px-3 py-2 border border-indigo-200 rounded-sm text-xs font-mono text-indigo-950 focus:border-indigo-500 outline-none bg-indigo-50/30"
+                      />
+                    </div>
+
+                    {/* Quick presets */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-indigo-50">
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-indigo-400">
+                        {i18n.language === 'tr' ? 'Hızlı Seçenekler:' : 'Quick Presets:'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const in2Hours = new Date(Date.now() + 2 * 60 * 60 * 1000);
+                          const val = `${in2Hours.getFullYear()}-${String(in2Hours.getMonth() + 1).padStart(2, '0')}-${String(in2Hours.getDate()).padStart(2, '0')}T${String(in2Hours.getHours()).padStart(2, '0')}:${String(in2Hours.getMinutes()).padStart(2, '0')}`;
+                          setFormData(prev => ({ ...prev, publishAt: val }));
+                        }}
+                        className="px-2.5 py-1 text-[10px] font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xs transition-colors cursor-pointer"
+                      >
+                        {i18n.language === 'tr' ? '+2 Saat Sonra' : '+2 Hours'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                          tomorrow.setHours(9, 0, 0, 0);
+                          const val = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}T09:00`;
+                          setFormData(prev => ({ ...prev, publishAt: val }));
+                        }}
+                        className="px-2.5 py-1 text-[10px] font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xs transition-colors cursor-pointer"
+                      >
+                        {i18n.language === 'tr' ? 'Yarın Sabah 09:00' : 'Tomorrow 09:00'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const in3Days = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+                          in3Days.setHours(10, 0, 0, 0);
+                          const val = `${in3Days.getFullYear()}-${String(in3Days.getMonth() + 1).padStart(2, '0')}-${String(in3Days.getDate()).padStart(2, '0')}T10:00`;
+                          setFormData(prev => ({ ...prev, publishAt: val }));
+                        }}
+                        className="px-2.5 py-1 text-[10px] font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xs transition-colors cursor-pointer"
+                      >
+                        {i18n.language === 'tr' ? '3 Gün Sonra 10:00' : 'In 3 Days 10:00'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </form>
 
@@ -1706,11 +1938,11 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
               Auto-save active & secured in cloud
             </div>
             
-            <div className="flex gap-3 justify-end w-full sm:w-auto">
+            <div className="flex flex-wrap gap-2.5 justify-end w-full sm:w-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3.5 text-xs uppercase tracking-widest font-bold text-brand-navy hover:text-brand-gold transition-colors"
+                className="px-4 py-3 text-xs uppercase tracking-widest font-bold text-brand-navy hover:text-brand-gold transition-colors"
               >
                 {t('blogAdmin.cancel')}
               </button>
@@ -1718,7 +1950,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
               <button
                 type="button"
                 onClick={() => setIsPreviewOpen(true)}
-                className="px-6 py-3.5 border border-brand-navy/25 hover:border-brand-gold text-brand-navy hover:text-brand-gold text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all cursor-pointer bg-white"
+                className="px-4 py-3 border border-brand-navy/25 hover:border-brand-gold text-brand-navy hover:text-brand-gold text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all cursor-pointer bg-white"
               >
                 Yazıyı Önizle
                 <Eye className="w-4 h-4 text-brand-gold" />
@@ -1728,7 +1960,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                 type="button"
                 onClick={(e) => handleSubmit(e, 'draft')}
                 disabled={isSubmitting}
-                className="px-6 py-3.5 border border-amber-500/30 text-amber-700 hover:bg-amber-50 text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                className="px-4 py-3 border border-amber-500/30 text-amber-700 hover:bg-amber-50 text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
               >
                 Taslak Olarak Kaydet
                 <AlertCircle className="w-4 h-4 text-amber-500" />
@@ -1736,9 +1968,32 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
 
               <button
                 type="button"
+                onClick={(e) => {
+                  if (formData.status !== 'scheduled') {
+                    setFormData(prev => {
+                      let publishAt = prev.publishAt;
+                      if (!publishAt) {
+                        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                        tomorrow.setHours(9, 0, 0, 0);
+                        publishAt = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}T09:00`;
+                      }
+                      return { ...prev, status: 'scheduled', publishAt };
+                    });
+                  }
+                  handleSubmit(e, 'scheduled');
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-3 border border-indigo-400 text-indigo-700 hover:bg-indigo-50 text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Yayını Zamanla
+                <Clock className="w-4 h-4 text-indigo-600" />
+              </button>
+
+              <button
+                type="button"
                 onClick={(e) => handleSubmit(e, 'published')}
                 disabled={isSubmitting}
-                className="px-6 py-3.5 bg-brand-gold text-white text-xs uppercase tracking-widest font-bold flex items-center gap-2 hover:bg-brand-gold/90 transition-all disabled:opacity-50 cursor-pointer"
+                className="px-5 py-3 bg-brand-gold text-white text-xs uppercase tracking-widest font-bold flex items-center gap-2 hover:bg-brand-gold/90 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? t('blogAdmin.saving') : initialData ? 'Değişiklikleri Yayınla' : 'Master Yazıyı Yayınla'}
                 <Save className="w-4 h-4" />

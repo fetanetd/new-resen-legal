@@ -250,3 +250,22 @@ export function findTeamMember(authorId: string | undefined, teamMembers: any[])
   return found || null;
 }
 
+export function isPostPublished(post: any): boolean {
+  if (!post) return false;
+  if (post.status === 'draft') return false;
+  if (post.status === 'scheduled') {
+    if (!post.publishAt) return false;
+    const publishTime = new Date(post.publishAt).getTime();
+    return !isNaN(publishTime) && publishTime <= Date.now();
+  }
+  // status is 'published' or undefined (backward compatibility for legacy posts)
+  return true;
+}
+
+export function isPostScheduledFuture(post: any): boolean {
+  if (!post || post.status !== 'scheduled') return false;
+  if (!post.publishAt) return true;
+  const publishTime = new Date(post.publishAt).getTime();
+  return isNaN(publishTime) || publishTime > Date.now();
+}
+
