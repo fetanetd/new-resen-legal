@@ -35,8 +35,15 @@ export default function Blog() {
   const teamMembers = useMemo(() => {
     const merged = [...firestoreTeam];
     MOCK_TEAM.forEach(mockMember => {
-      if (!merged.find(m => m.id === mockMember.id || m.name.toLowerCase() === mockMember.name.toLowerCase())) {
+      const idx = merged.findIndex(m => m.id === mockMember.id || m.name.toLowerCase() === mockMember.name.toLowerCase());
+      if (idx === -1) {
         merged.push(mockMember as any as TeamMember);
+      } else if (mockMember.id === '1' || mockMember.name.toLowerCase().includes('fetanet')) {
+        merged[idx] = {
+          ...merged[idx],
+          bio: mockMember.bio,
+          role: mockMember.role || merged[idx].role
+        };
       }
     });
     if (!merged.find(m => m.id === 'resen-legal')) {

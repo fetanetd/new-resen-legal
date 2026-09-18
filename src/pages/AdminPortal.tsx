@@ -939,11 +939,18 @@ export default function AdminPortal() {
       setSerpSaveError(null);
       setSerpSaveSuccess(null);
 
+      const cleanedSerpSlug = serpSlug.trim().toLowerCase().replace(/[\s_]+/g, '-');
+      if (/^\d+$/.test(cleanedSerpSlug)) {
+        setSerpSaveError("Slug cannot be numeric only. Please use descriptive words, for example: ingilterede-sirket-kurulusu.");
+        setSerpIsSaving(false);
+        return;
+      }
+
       const postRef = doc(db, 'blog', serpSelectedPost.id);
       await updateDoc(postRef, {
         metaTitle: serpTitle.trim(),
         metaDescription: serpMetaDesc.trim(),
-        slug: serpSlug.trim().toLowerCase()
+        slug: cleanedSerpSlug
       });
 
       await logActivity('UPDATE', 'blog', serpSelectedPost.id);
@@ -970,12 +977,34 @@ export default function AdminPortal() {
   const teamMembers = useMemo(() => {
     const merged = [...firestoreTeam];
     MOCK_TEAM.forEach(mockMember => {
-      if (!merged.find(m => m.id === mockMember.id || m.name.toLowerCase() === mockMember.name.toLowerCase())) {
+      const idx = merged.findIndex(m => m.id === mockMember.id || m.name.toLowerCase() === mockMember.name.toLowerCase());
+      if (idx === -1) {
         merged.push(mockMember as any as TeamMember);
+      } else if (mockMember.id === '1' || mockMember.name.toLowerCase().includes('fetanet')) {
+        merged[idx] = {
+          ...merged[idx],
+          bio: mockMember.bio,
+          role: mockMember.role || merged[idx].role
+        };
       }
     });
     return merged;
   }, [firestoreTeam]);
+
+  // Sync Fetanet Darıoğlu bio to Firestore if admin is logged in
+  useEffect(() => {
+    if (!user || (user.email !== 'fetanetdarioglu@gmail.com' && user.email !== 'resenlegal@gmail.com')) return;
+    const fetanetInDb = firestoreTeam.find(m => m.id === '1' || m.name.toLowerCase() === 'fetanet darıoğlu');
+    if (fetanetInDb && fetanetInDb.bio?.en !== MOCK_TEAM[0].bio.en) {
+      setDoc(doc(db, 'team', '1'), {
+        ...fetanetInDb,
+        bio: MOCK_TEAM[0].bio,
+        role: MOCK_TEAM[0].role
+      }, { merge: true }).catch(err => {
+        console.warn('Auto-sync of team bio deferred:', err);
+      });
+    }
+  }, [user, firestoreTeam]);
 
   const blogCategories = useMemo(() => {
     const mergedPosts = [...firestoreBlog];
@@ -1072,6 +1101,12 @@ export default function AdminPortal() {
 
       if (!cleanedSlug) {
         setSlugSaveError("Slug boş bırakılamaz.");
+        setIsUpdatingSlug(null);
+        return;
+      }
+
+      if (/^\d+$/.test(cleanedSlug)) {
+        setSlugSaveError("Slug cannot be numeric only. Please use descriptive words, for example: ingilterede-sirket-kurulusu.");
         setIsUpdatingSlug(null);
         return;
       }
@@ -1822,7 +1857,7 @@ export default function AdminPortal() {
           id: 'canonical',
           name: 'Canonical Tag Link',
           description: 'Must match a valid lowercase slug. Tells search engines which URL to index to prevent duplicate content issues.',
-          value: slug ? `https://resenlegal.com/blog/${slug}` : '',
+          value: slug ? `https://resenlegal.com/blog/${slug}/` : '',
           length: slug.length,
           status: !slug ? 'fail' : /^[a-z0-9-_]+$/.test(slug) ? 'pass' : 'warn',
           feedback: !slug 
@@ -2668,7 +2703,7 @@ export default function AdminPortal() {
                                 {record.title} | Resen Legal
                               </div>
                               <div className="text-[#006621] text-xs font-mono">
-                                https://resenlegal.com/blog/{record.slug}
+                                https://resenlegal.com/blog/{record.slug}/
                               </div>
                               <div className="text-[#545454] text-xs leading-relaxed max-w-md line-clamp-2">
                                 {record.checks.find(c => c.id === 'description')?.value || "Missing meta description. Click Edit Metadata to set a high-converting, keyword-rich SEO description."}
@@ -3309,9 +3344,16 @@ export default function AdminPortal() {
                                 placeholder="yeni-url-slug"
                               />
                               {isEditing && editedValue !== currentSlug && (
-                                <p className="text-[9px] text-brand-gold font-bold">
-                                  Yeni adres: <span className="font-mono">/blog/{editedValue}</span>
-                                </p>
+                                <div className="space-y-0.5">
+                                  <p className="text-[9px] text-brand-gold font-bold">
+                                    Yeni adres: <span className="font-mono">/blog/{editedValue}/</span>
+                                  </p>
+                                  {/^\d+$/.test(editedValue) && (
+                                    <p className="text-[9px] text-red-600 font-bold">
+                                      ⚠️ Slug cannot be numeric only.
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </td>
@@ -3404,7 +3446,7 @@ export default function AdminPortal() {
                           onClick={() => {
                             const title = getPostTitle(selectedSharePost);
                             const excerpt = getPostExcerpt(selectedSharePost);
-                            const text = `💼 Hukuki Gelişmeler & Sektörel Analizler\n\nSizler için derlediğimiz güncel makalemiz yayınlandı: "${title}"\n\n"${excerpt}"\n\nResen Hukuk & Danışmanlık uzman kadrosu tarafından hazırlanan bu analizin detaylarını okumak için web sitemizi ziyaret edebilirsiniz.\n\n🔗 Okumak için tıklayın: https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}\n\n#resenlegal #hukuk #danismanlik #kurumsal #${selectedSharePost.category?.replace(/\s+/g, '')}`;
+                            const text = `💼 Hukuki Gelişmeler & Sektörel Analizler\n\nSizler için derlediğimiz güncel makalemiz yayınlandı: "${title}"\n\n"${excerpt}"\n\nResen Hukuk & Danışmanlık uzman kadrosu tarafından hazırlanan bu analizin detaylarını okumak için web sitemizi ziyaret edebilirsiniz.\n\n🔗 Okumak için tıklayın: https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}/\n\n#resenlegal #hukuk #danismanlik #kurumsal #${selectedSharePost.category?.replace(/\s+/g, '')}`;
                             navigator.clipboard.writeText(text);
                             setCopiedField('linkedin');
                           }}
@@ -3414,7 +3456,7 @@ export default function AdminPortal() {
                         </button>
                       </div>
                       <pre className="text-xs bg-brand-navy/[0.01] p-3 rounded-sm text-brand-navy/85 font-sans whitespace-pre-wrap leading-relaxed select-all">
-                        {`💼 Hukuki Gelişmeler & Sektörel Analizler\n\nSizler için derlediğimiz güncel makalemiz yayınlandı: "${getPostTitle(selectedSharePost)}"\n\n"${getPostExcerpt(selectedSharePost)}"\n\nResen Hukuk & Danışmanlık uzman kadrosu tarafından hazırlanan bu analizin detaylarını okumak için web sitemizi ziyaret edebilirsiniz.\n\n🔗 Okumak için tıklayın: https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}\n\n#resenlegal #hukuk #danismanlik #kurumsal #${selectedSharePost.category?.replace(/\s+/g, '')}`}
+                        {`💼 Hukuki Gelişmeler & Sektörel Analizler\n\nSizler için derlediğimiz güncel makalemiz yayınlandı: "${getPostTitle(selectedSharePost)}"\n\n"${getPostExcerpt(selectedSharePost)}"\n\nResen Hukuk & Danışmanlık uzman kadrosu tarafından hazırlanan bu analizin detaylarını okumak için web sitemizi ziyaret edebilirsiniz.\n\n🔗 Okumak için tıklayın: https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}/\n\n#resenlegal #hukuk #danismanlik #kurumsal #${selectedSharePost.category?.replace(/\s+/g, '')}`}
                       </pre>
                     </div>
 
@@ -3428,7 +3470,7 @@ export default function AdminPortal() {
                           onClick={() => {
                             const title = getPostTitle(selectedSharePost);
                             const excerpt = getPostExcerpt(selectedSharePost);
-                            const text = `⚖️ Yeni Makale: "${title}"\n\n${excerpt.substring(0, 110)}...\n\nOkumak için tıklayın:\n🔗 https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}\n\n#resenlegal #hukuk #${selectedSharePost.category?.replace(/\s+/g, '')}`;
+                            const text = `⚖️ Yeni Makale: "${title}"\n\n${excerpt.substring(0, 110)}...\n\nOkumak için tıklayın:\n🔗 https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}/\n\n#resenlegal #hukuk #${selectedSharePost.category?.replace(/\s+/g, '')}`;
                             navigator.clipboard.writeText(text);
                             setCopiedField('twitter');
                           }}
@@ -3438,7 +3480,7 @@ export default function AdminPortal() {
                         </button>
                       </div>
                       <pre className="text-xs bg-brand-navy/[0.01] p-3 rounded-sm text-brand-navy/85 font-sans whitespace-pre-wrap leading-relaxed select-all">
-                        {`⚖️ Yeni Makale: "${getPostTitle(selectedSharePost)}"\n\n${getPostExcerpt(selectedSharePost).substring(0, 110)}...\n\nOkumak için tıklayın:\n🔗 https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}\n\n#resenlegal #hukuk #${selectedSharePost.category?.replace(/\s+/g, '')}`}
+                        {`⚖️ Yeni Makale: "${getPostTitle(selectedSharePost)}"\n\n${getPostExcerpt(selectedSharePost).substring(0, 110)}...\n\nOkumak için tıklayın:\n🔗 https://resenlegal.com/blog/${getPostSlug(selectedSharePost)}/\n\n#resenlegal #hukuk #${selectedSharePost.category?.replace(/\s+/g, '')}`}
                       </pre>
                     </div>
                   </div>

@@ -299,14 +299,14 @@ export const TEAM: TeamMember[] = [
       en: 'Founder & Principal Lawyer',
       tr: 'Kurucu ve Baş Avukat',
       ar: 'المؤسس والمحامي الرئيسي',
-      es: 'Fundadora y Abogada Principal',
+      es: 'Fundador y Abogado Principal',
       zh: '创始人兼首席律师'
     },
     image: 'https://res.cloudinary.com/dlrsifk2y/image/upload/f_auto,q_auto/fetanet_y230cj',
     email: 'fetanet@resenlegal.com',
     bio: {
-      en: 'Fetanet Darıoğlu is an experienced attorney specializing in international mobility, citizenship by investment, and corporate law. With over a decade of practice, she has successfully guided numerous multinational corporations and private clients through complex legal landscapes in Turkey and abroad.',
-      tr: 'Fetanet Darıoğlu, uluslararası hareketlilik, yatırım yoluyla vatandaşlık ve şirketler hukuku alanlarında uzmanlaşmış deneyimli bir avukattır. On yılı aşkın mesleki tecrübesiyle, çok sayıda çok uluslu şirkete ve özel müvekkile Türkiye ve yurt dışındaki karmaşık hukuki süreçlerde başarıyla rehberlik etmiştir.'
+      en: 'Mr. Fetanet Darıoğlu is an experienced lawyer with a strong track record in international mobility, citizenship by investment, residency, and corporate law. A 2016 graduate of Marmara University Faculty of Law, he holds dual Turkish and British citizenship. Throughout his career, he has advised multinational companies and private clients on complex legal matters, with a strong focus on immigration law, corporate law, and GDPR compliance. Having spent significant time in London, he brings an international perspective to legal practice and continues to guide clients through cross-border legal processes in Türkiye, the United Kingdom, and beyond.',
+      tr: 'Av. Fetanet Darıoğlu, uluslararası hareketlilik, yatırım yoluyla vatandaşlık, oturum süreçleri ve şirketler hukuku alanlarında güçlü bir deneyime sahip avukattır. Marmara Üniversitesi Hukuk Fakültesi 2016 mezunu olan Darıoğlu, Türk ve İngiliz vatandaşlığına sahiptir. Kariyeri boyunca çok uluslu şirketlere ve özel müvekkillere göç hukuku, şirketler hukuku ve KVKK/GDPR uyumu başta olmak üzere karmaşık hukuki konularda danışmanlık vermiştir. Londra’da edindiği önemli deneyim sayesinde hukuki çalışmalara uluslararası bir perspektif kazandırmakta; Türkiye, Birleşik Krallık ve diğer ülkelerdeki sınır ötesi hukuki süreçlerde müvekkillerine rehberlik etmektedir.'
     }
   },
   {

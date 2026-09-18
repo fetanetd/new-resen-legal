@@ -595,7 +595,7 @@ async function main() {
       },
       {
         "@type": "LegalService",
-        "@id": "https://resenlegal.com/#legalservice",
+        "@id": "https://resenlegal.com/#organization",
         "name": "Resen Legal & Consultancy",
         "url": "https://resenlegal.com/",
         "logo": {
@@ -611,6 +611,28 @@ async function main() {
           "addressLocality": "Istanbul",
           "addressCountry": "TR"
         }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://resenlegal.com/#fetanet-darioglu",
+        "name": "Fetanet Darıoğlu",
+        "alternateName": [
+          "Fetanet Darioglu",
+          "Mr. Fetanet Darıoğlu",
+          "Mr. Fetanet Darioglu",
+          "Av. Fetanet Darıoğlu"
+        ],
+        "honorificPrefix": "Mr.",
+        "gender": "https://schema.org/Male",
+        "pronouns": "he/him",
+        "jobTitle": "Founder & Principal Lawyer",
+        "email": "fetanet@resenlegal.com",
+        "image": "https://res.cloudinary.com/dlrsifk2y/image/upload/f_auto,q_auto/fetanet_y230cj",
+        "url": "https://resenlegal.com/#team",
+        "worksFor": {
+          "@id": "https://resenlegal.com/#organization"
+        },
+        "knowsLanguage": ["Turkish", "English"]
       }
     ]
   };
@@ -796,9 +818,25 @@ async function main() {
               "position": 1,
               "item": {
                 "@type": "Person",
+                "@id": "https://resenlegal.com/#fetanet-darioglu",
                 "name": "Fetanet Darıoğlu",
+                "alternateName": [
+                  "Fetanet Darioglu",
+                  "Mr. Fetanet Darıoğlu",
+                  "Mr. Fetanet Darioglu",
+                  "Av. Fetanet Darıoğlu"
+                ],
+                "honorificPrefix": "Mr.",
+                "gender": "https://schema.org/Male",
+                "pronouns": "he/him",
                 "jobTitle": "Founder & Principal Lawyer",
-                "email": "fetanet@resenlegal.com"
+                "email": "fetanet@resenlegal.com",
+                "image": "https://res.cloudinary.com/dlrsifk2y/image/upload/f_auto,q_auto/fetanet_y230cj",
+                "url": "https://resenlegal.com/#team",
+                "worksFor": {
+                  "@id": "https://resenlegal.com/#organization"
+                },
+                "knowsLanguage": ["Turkish", "English"]
               }
             },
             {

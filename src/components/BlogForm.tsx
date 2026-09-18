@@ -66,6 +66,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
   const [isDrafting, setIsDrafting] = useState(false);
   const [showImageGallery, setShowImageGallery] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [h1Notice, setH1Notice] = useState<string | null>(null);
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -234,6 +235,19 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
       .replace(/\-\-+/g, '-') // Replace multiple - with single -
       .replace(/^-+/, '') // Trim - from start
       .replace(/-+$/, ''); // Trim - from end
+  };
+
+  const convertH1ToH2 = (html: string): { converted: string; hadH1: boolean } => {
+    if (!html || !/<h1[\s>]/i.test(html)) {
+      return { converted: html || '', hadH1: false };
+    }
+    const converted = html
+      .replace(/<h1(\s+[^>]*)?>/gi, (_match, attrs) => {
+        const trimmed = (attrs || '').trim();
+        return trimmed ? `<h2 ${trimmed}>` : '<h2>';
+      })
+      .replace(/<\/h1>/gi, '</h2>');
+    return { converted, hadH1: true };
   };
 
   const insertFormattingBlock = (type: 'advice' | 'warning' | 'note' | 'checklist') => {
@@ -614,8 +628,10 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
     if (e) e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setH1Notice(null);
 
     const resolvedStatus = statusOverride || (initialData as any)?.status || 'published';
+    const isPublished = resolvedStatus === 'published';
 
     try {
       const finalTitle = {
@@ -639,7 +655,86 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
       if (!finalContent.en && finalContent.tr) finalContent.en = finalContent.tr;
       if (!finalContent.tr && finalContent.en) finalContent.tr = finalContent.en;
 
-      const computedSlug = formData.slug ? generateSlug(formData.slug) : generateSlug(finalTitle.tr || finalTitle.en || formData.title || 'post');
+      const rawSlugInput = formData.slug ? formData.slug : (finalTitle.tr || finalTitle.en || formData.title || (isPublished ? '' : 'post'));
+      const computedSlug = generateSlug(rawSlugInput);
+
+      // Publishing validation guards
+      if (isPublished) {
+        const missingFields: string[] = [];
+
+        const hasTitle = Boolean(
+          (finalTitle.tr && finalTitle.tr.trim()) ||
+          (finalTitle.en && finalTitle.en.trim()) ||
+          (formData.title && formData.title.trim())
+        );
+        if (!hasTitle) {
+          missingFields.push(i18n.language === 'tr' ? 'Başlık' : 'Title');
+        }
+
+        const hasCategory = Boolean(formData.category && formData.category.trim());
+        if (!hasCategory) {
+          missingFields.push(i18n.language === 'tr' ? 'Kategori' : 'Category');
+        }
+
+        const stripHtml = (text?: string) => (text || '').replace(/<[^>]*>/g, '').trim();
+        const hasContent = Boolean(
+          stripHtml(formData.content) ||
+          stripHtml(finalContent[formData.language]) ||
+          stripHtml(finalContent.tr) ||
+          stripHtml(finalContent.en) ||
+          (formData.content && (formData.content.includes('<img') || formData.content.includes('<iframe') || formData.content.includes('<table')))
+        );
+        if (!hasContent) {
+          missingFields.push(i18n.language === 'tr' ? 'İçerik' : 'Content');
+        }
+
+        const hasSeoMeta = Boolean(formData.seoMeta && formData.seoMeta.trim());
+        if (!hasSeoMeta) {
+          missingFields.push(i18n.language === 'tr' ? 'Meta Açıklama (SEO Meta)' : 'Meta Description (SEO Meta)');
+        }
+
+        if (!computedSlug || !computedSlug.trim()) {
+          missingFields.push(i18n.language === 'tr' ? 'URL Slug' : 'URL Slug');
+        }
+
+        if (missingFields.length > 0) {
+          setError(
+            i18n.language === 'tr'
+              ? `Yayınlamadan önce lütfen zorunlu alanları doldurunuz: ${missingFields.join(', ')}.`
+              : `Please fill in all required fields before publishing: ${missingFields.join(', ')}.`
+          );
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Numeric-only slug check
+        if (/^\d+$/.test(computedSlug)) {
+          setError('Slug cannot be numeric only. Please use descriptive words, for example: ingilterede-sirket-kurulusu.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // H1 handling: convert body <h1> to <h2> while preserving attributes and inline styles
+      let bodyH1Converted = false;
+      const { converted: convertedCurrent, hadH1: hadH1Current } = convertH1ToH2(formData.content);
+      if (hadH1Current) {
+        bodyH1Converted = true;
+        formData.content = convertedCurrent;
+      }
+
+      Object.keys(finalContent).forEach(lang => {
+        const { converted, hadH1 } = convertH1ToH2(finalContent[lang]);
+        if (hadH1) {
+          bodyH1Converted = true;
+          finalContent[lang] = converted;
+        }
+      });
+
+      if (bodyH1Converted) {
+        setH1Notice('Body H1 headings were converted to H2 because the article title is already used as the page H1.');
+        setFormData(prev => ({ ...prev, content: convertedCurrent }));
+      }
 
       const dbData = {
         title: finalTitle,
@@ -653,13 +748,12 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         seoKeywords: formData.seoKeywords || '',
         status: resolvedStatus,
         language: formData.language || 'tr',
-        slug: computedSlug,
+        slug: computedSlug || 'post',
         imageAlt: formData.imageAlt || '',
         metaTitle: formData.metaTitle || ''
       };
 
       const wasPublished = (initialData as any)?.status === 'published';
-      const isPublished = resolvedStatus === 'published';
       const shouldTriggerDeploy = isPublished || (wasPublished && !isPublished);
 
       if (initialData?.id) {
@@ -702,7 +796,12 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         } else {
           console.warn("Deploy trigger skipped: No authenticated user");
         }
-        alert("Yazı kaydedildi. Site yaklaşık 2 dakika içinde güncellenecek");
+        const h1NoticeMsg = bodyH1Converted
+          ? "\n\nNot: Body H1 headings were converted to H2 because the article title is already used as the page H1."
+          : "";
+        alert("Yazı kaydedildi. Site yaklaşık 2 dakika içinde güncellenecek" + h1NoticeMsg);
+      } else if (bodyH1Converted) {
+        alert("Taslak kaydedildi.\n\nNot: Body H1 headings were converted to H2 because the article title is already used as the page H1.");
       }
 
       onClose();
@@ -852,8 +951,24 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
 
           {error && (
             <div className="bg-red-50 text-red-600 p-4 rounded-sm flex items-center gap-3">
-              <AlertCircle className="w-5 h-5" />
-              {error}
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {h1Notice && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-sm flex items-center justify-between gap-3 text-xs animate-fadeIn">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{h1Notice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setH1Notice(null)}
+                className="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
@@ -947,6 +1062,13 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                         >
                           <Plus className="w-4 h-4" />
                         </button>
+                      </div>
+                    )}
+
+                    {(isAddingCategory || (formData.category && services.length > 0 && !services.some(s => s.title.en === formData.category))) && (
+                      <div className="bg-amber-50/90 border border-amber-200/80 p-2 rounded-sm mt-1.5 flex items-start gap-1.5 text-[10px] text-amber-800 leading-tight">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span>New categories may break Related Insights grouping. Prefer existing service category names where possible.</span>
                       </div>
                     )}
                   </div>
@@ -1139,7 +1261,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                         <div className="p-2.5 bg-brand-navy/[0.02] border border-brand-navy/5 rounded-sm flex items-center gap-2">
                           <span className="text-[8px] uppercase tracking-widest font-bold text-brand-gold bg-brand-gold/10 px-1.5 py-0.5 whitespace-nowrap">Permanent Slug URL</span>
                           <span className="font-mono text-[9px] text-brand-navy/50 truncate">
-                            https://resenlegal.com/blog/<strong>{generateSlug(formData.slug || formData.title)}</strong>
+                            https://resenlegal.com/blog/<strong>{generateSlug(formData.slug || formData.title)}</strong>/
                           </span>
                         </div>
                       )}
@@ -1432,6 +1554,13 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                         )}
                       </div>
 
+                      {/<h1[\s>]/i.test(formData.content) && (
+                        <div className="bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-sm flex items-center gap-2 text-xs text-amber-900 animate-fadeIn">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Body H1 headings detected in content. They will be automatically converted to H2 upon saving because the article title is already used as the page H1.</span>
+                        </div>
+                      )}
+
                       {useHtmlMode ? (
                         <div className="bg-neutral-900 rounded-sm border border-neutral-800 overflow-hidden flex flex-col p-1">
                           <div className="bg-neutral-950 px-4 py-2 border-b border-neutral-800 flex justify-between items-center text-[10px] text-neutral-400 font-mono">
@@ -1540,7 +1669,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                           <div className="min-w-0">
                             <p className="truncate text-xs leading-none">Resen Legal | Danışmanlık</p>
                             <p className="text-[10px] text-[#202124]/60 truncate leading-none mt-0.5">
-                              https://resenlegal.com/blog/{generateSlug(formData.slug || formData.title || 'article')}
+                              https://resenlegal.com/blog/{generateSlug(formData.slug || formData.title || 'article')}/
                             </p>
                           </div>
                         </div>
