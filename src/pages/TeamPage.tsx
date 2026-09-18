@@ -14,6 +14,75 @@ export default function TeamPage() {
     window.scrollTo(0, 0);
   }, []);
 
+  const teamStructuredData = React.useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "Resen Legal Team",
+    "description": "Meet our expert team of legal professionals at Resen Legal & Consultancy.",
+    "url": "https://resenlegal.com/team/",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+            "@type": "Person",
+            "@id": "https://resenlegal.com/#fetanet-darioglu",
+            "name": "Fetanet Darıoğlu",
+            "alternateName": [
+              "Fetanet Darioglu",
+              "Mr. Fetanet Darıoğlu",
+              "Mr. Fetanet Darioglu",
+              "Av. Fetanet Darıoğlu"
+            ],
+            "honorificPrefix": "Mr.",
+            "gender": "https://schema.org/Male",
+            "pronouns": "he/him",
+            "jobTitle": "Founder & Principal Lawyer",
+            "email": "fetanet@resenlegal.com",
+            "image": "https://res.cloudinary.com/dlrsifk2y/image/upload/f_auto,q_auto/fetanet_y230cj",
+            "url": "https://resenlegal.com/#team",
+            "worksFor": {
+              "@id": "https://resenlegal.com/#organization"
+            },
+            "knowsLanguage": ["Turkish", "English"]
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "item": {
+            "@type": "Person",
+            "name": "Yunus Emre Çakmak",
+            "jobTitle": "Senior Associate",
+            "email": "yunusemre@resenlegal.com"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "item": {
+            "@type": "Person",
+            "name": "Kerim Said Akyüz",
+            "jobTitle": "Senior Associate",
+            "email": "kerimsaid@resenlegal.com"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "item": {
+            "@type": "Person",
+            "name": "Emre Aydoğan",
+            "jobTitle": "Business Development & Strategy Advisor",
+            "email": "emre@resenlegal.com"
+          }
+        }
+      ]
+    }
+  }), []);
+
   return (
     <div className="min-h-screen bg-bg-deep">
       <SEO 
@@ -21,6 +90,7 @@ export default function TeamPage() {
         description="Meet our expert team of legal professionals at Resen Legal & Consultancy. Excellence, diversity, and commitment to client success."
         keywords="legal team, expert lawyers, immigration lawyers, corporate law experts Turkey, Resen Legal team"
         canonical="/team/"
+        structuredData={teamStructuredData}
       />
       
       <Navbar />
