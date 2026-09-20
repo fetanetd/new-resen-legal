@@ -15,12 +15,15 @@ import { useFirestoreCollection } from '../hooks/useFirestoreData';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+type PostFetchStatus = 'loading' | 'found' | 'not_found' | 'error';
+
 export default function BlogPostDetail() {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<PostFetchStatus>('loading');
   const [showCopyFeedback, setShowCopyFeedback] = useState(false);
   const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
   const [instantClose, setInstantClose] = useState(false);
@@ -58,7 +61,7 @@ export default function BlogPostDetail() {
     );
   }, [post]);
 
-  const { data: firestoreBlog, loading: firestoreLoading } = useFirestoreCollection<BlogPost>('blog');
+  const { data: firestoreBlog, loading: firestoreLoading, error: firestoreError } = useFirestoreCollection<BlogPost>('blog');
   const { data: firestoreTeam } = useFirestoreCollection<TeamMember>('team');
   const { data: firestoreServices } = useFirestoreCollection<any>('services');
 
@@ -146,14 +149,22 @@ export default function BlogPostDetail() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchPost = async () => {
-      if (!id) return;
+      if (!id) {
+        setPost(null);
+        setStatus('not_found');
+        setLoading(false);
+        return;
+      }
       const targetId = id.trim().toLowerCase();
 
       // If the firestore collections are still loading, wait so we have the full Firestore dataset
       if (firestoreLoading) {
         setLoading(true);
+        setStatus('loading');
         return;
       }
+
+      let hadFirestoreError = Boolean(firestoreError);
 
       try {
         let postData: BlogPost | null = null;
@@ -179,6 +190,7 @@ export default function BlogPostDetail() {
               postData = { id: docSnap.id, ...docSnap.data() } as BlogPost;
             }
           } catch (e) {
+            hadFirestoreError = true;
             console.warn('Direct query by slug failed:', e);
           }
         }
@@ -191,6 +203,7 @@ export default function BlogPostDetail() {
               postData = { id: postDoc.id, ...postDoc.data() } as BlogPost;
             }
           } catch (e) {
+            hadFirestoreError = true;
             console.warn('Document with ID not found directly, falling back:', e);
           }
         }
@@ -213,11 +226,13 @@ export default function BlogPostDetail() {
 
           if (!isPublished && !isUserAdmin) {
             setPost(null);
+            setStatus('not_found');
             setLoading(false);
             return;
           }
 
           setPost(postData);
+          setStatus('found');
           setLoading(false);
 
           // If accessed via non-canonical numeric ID or document ID, normalize route to canonical slug
@@ -243,19 +258,30 @@ export default function BlogPostDetail() {
             }
           }
         } else {
-          // Definitely not found anywhere
-          setPost(null);
-          setLoading(false);
+          // Post was not found in any dataset.
+          // Distinguish between communication/network error vs confirmed not found.
+          if (hadFirestoreError || (!firestoreBlog || firestoreBlog.length === 0)) {
+            // Cannot confidently prove the post does not exist (timeout, network error, or empty collection in offline/sandbox)
+            setPost(null);
+            setStatus('error');
+            setLoading(false);
+          } else {
+            // Firestore returned a valid dataset cleanly without errors and post is genuinely not present
+            setPost(null);
+            setStatus('not_found');
+            setLoading(false);
+          }
         }
       } catch (err) {
         console.error('Error fetching post:', err);
         setPost(null);
+        setStatus('error');
         setLoading(false);
       }
     };
 
     fetchPost();
-  }, [id, firestoreBlog, firestoreLoading]);
+  }, [id, firestoreBlog, firestoreLoading, firestoreError, currentUser]);
 
   const author = useMemo(() => {
     if (!post) return null;
@@ -672,7 +698,8 @@ export default function BlogPostDetail() {
     return '';
   }, [post, i18n.language]);
 
-  if (loading) {
+  // Neutral loading or undetermined / network error fallback: renders spinner WITHOUT calling <SEO noIndex />
+  if (loading || status === 'loading' || status === 'error') {
     return (
       <div className="min-h-screen bg-bg-deep flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin" />
@@ -680,7 +707,16 @@ export default function BlogPostDetail() {
     );
   }
 
-  if (!post) {
+  // Only definitively confirmed not-found states render the not-found view with <SEO noIndex />
+  if (status === 'not_found' || !post) {
+    if (status !== 'not_found') {
+      return (
+        <div className="min-h-screen bg-bg-deep flex items-center justify-center">
+          <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+
     const isTr = i18n.language === 'tr';
     return (
       <div className="min-h-screen bg-bg-deep flex flex-col justify-between font-sans">
