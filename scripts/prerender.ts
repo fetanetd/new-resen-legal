@@ -183,6 +183,30 @@ async function main() {
     }
   });
 
+  const getPrerenderCategory = (cat: string | undefined, lang: string): string => {
+    if (!cat) return lang === "tr" ? "Hukuki Analizler" : "Legal Insights";
+    const trimmed = cat.trim().toLowerCase();
+    if (trimmed === "private international law" || trimmed === "milletlerası özel hukuk" || trimmed === "milletlerarası özel hukuk" || trimmed === "uluslararası özel hukuk") {
+      return lang === "tr" ? "Milletlerarası Özel Hukuk" : "Private International Law";
+    }
+    if (trimmed === "immigration") {
+      return lang === "tr" ? "Göç Hukuku" : "Immigration Law";
+    }
+    if (trimmed === "corporate") {
+      return lang === "tr" ? "Şirketler ve Ticaret Hukuku" : "Commercial & Corporate Law";
+    }
+    const service = mergedServices.find((srv: any) => {
+      if (!srv.title) return false;
+      return Object.values(srv.title).some(
+        (val) => typeof val === "string" && val.trim().toLowerCase() === trimmed
+      );
+    });
+    if (service && service.title) {
+      return service.title[lang] || service.title["en"] || Object.values(service.title)[0] || cat;
+    }
+    return cat;
+  };
+
   const distPath = path.join(process.cwd(), "dist");
   const templatePath = path.join(distPath, "index.html");
 
@@ -193,9 +217,76 @@ async function main() {
 
   const htmlTemplate = fs.readFileSync(templatePath, "utf-8");
 
+  // Reusable semantic Header Navigation and Footer for prerendered pages
+  const navHtml = `
+    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-navy/95 text-white backdrop-blur-md border-b border-brand-gold/15">
+      <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 text-white no-underline">
+          <img src="https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png" alt="Resen Legal" class="w-8 h-8 object-contain" />
+          <span class="font-serif text-lg tracking-wider font-bold">RESEN LEGAL</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium text-brand-offwhite/80">
+          <a href="/services/" class="hover:text-brand-gold transition-colors">Services</a>
+          <a href="/about/" class="hover:text-brand-gold transition-colors">About</a>
+          <a href="/team/" class="hover:text-brand-gold transition-colors">Team</a>
+          <a href="/blog/" class="hover:text-brand-gold transition-colors">Blog</a>
+          <a href="/#contact" class="px-5 py-2.5 bg-brand-gold text-brand-navy font-bold hover:bg-brand-gold/90 transition-all rounded-sm">Contact</a>
+        </nav>
+      </div>
+    </header>
+  `;
+
+  const footerHtml = `
+    <footer class="bg-brand-navy text-white pt-20 pb-12 border-t border-brand-gold/20">
+      <div class="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div class="space-y-4">
+          <h4 class="font-serif text-2xl text-white">Resen Legal & Consultancy</h4>
+          <p class="text-sm text-brand-offwhite/60 font-light leading-relaxed">
+            Premier boutique international law firm based in Istanbul and London, delivering high-stakes legal solutions in Turkish citizenship, immigration, corporate structuring, and cross-border commercial transactions.
+          </p>
+        </div>
+        <div>
+          <h5 class="text-xs uppercase tracking-[0.25em] font-bold text-brand-gold mb-4">Practice Areas</h5>
+          <ul class="space-y-2 text-sm text-brand-offwhite/70">
+            ${mergedServices.slice(0, 6).map((s: any) => `
+              <li><a href="/service/${(s.id || '').toString().trim().toLowerCase()}/" class="hover:text-brand-gold transition-colors">${getServerTranslation(s.title, 'en')}</a></li>
+            `).join('')}
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-xs uppercase tracking-[0.25em] font-bold text-brand-gold mb-4">Quick Links</h5>
+          <ul class="space-y-2 text-sm text-brand-offwhite/70">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services/" class="hover:text-brand-gold transition-colors">All Services</a></li>
+            <li><a href="/about/" class="hover:text-brand-gold transition-colors">About Us</a></li>
+            <li><a href="/team/" class="hover:text-brand-gold transition-colors">Our Team</a></li>
+            <li><a href="/blog/" class="hover:text-brand-gold transition-colors">Legal Insights</a></li>
+            <li><a href="/#contact" class="hover:text-brand-gold transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-xs uppercase tracking-[0.25em] font-bold text-brand-gold mb-4">Contact & Office</h5>
+          <p class="text-sm text-brand-offwhite/70 mb-2">Istanbul & London</p>
+          <p class="text-sm text-brand-offwhite/70 mb-2"><a href="mailto:info@resenlegal.com" class="hover:text-brand-gold">info@resenlegal.com</a></p>
+          <p class="text-sm text-brand-offwhite/70"><a href="tel:+905467962854" class="hover:text-brand-gold">+90 546 796 28 54</a></p>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto px-6 lg:px-12 pt-8 border-t border-white/10 text-xs text-brand-offwhite/40 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>© ${new Date().getFullYear()} Resen Legal & Consultancy. All rights reserved.</div>
+        <div class="flex gap-6">
+          <a href="/services/" class="hover:text-brand-gold">Services</a>
+          <a href="/blog/" class="hover:text-brand-gold">Insights</a>
+          <a href="/about/" class="hover:text-brand-gold">About</a>
+        </div>
+      </div>
+    </footer>
+  `;
+
   // Prerender Blog posts
   console.log("Prerendering blog detail pages...");
-  const publishedPosts = mergedPosts.filter((post) => isPostPublishedPrerender(post));
+  const publishedPosts = mergedPosts
+    .filter((post) => isPostPublishedPrerender(post))
+    .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   
   for (const post of publishedPosts) {
     const slug = getPostSlug(post);
@@ -506,10 +597,87 @@ async function main() {
       </div>
     `).join("");
     
+    // Find related blog posts for this service (mirroring ServiceDetail.tsx)
+    const configuredCat = service.relatedCategory?.trim();
+    let matchedPosts: any[] = [];
+    if (configuredCat) {
+      matchedPosts = publishedPosts.filter(post => {
+        const cat = post.category || '';
+        return cat.toLowerCase() === configuredCat.toLowerCase() || 
+               cat.toLowerCase().includes(configuredCat.toLowerCase()) || 
+               configuredCat.toLowerCase().includes(cat.toLowerCase());
+      });
+    }
+    if (matchedPosts.length === 0) {
+      const serviceEnTitle = service.title?.en;
+      matchedPosts = publishedPosts.filter(post => {
+        const cat = post.category;
+        return cat === serviceId || (serviceEnTitle && cat === serviceEnTitle);
+      });
+    }
+    if (matchedPosts.length < 2) {
+      const remaining = publishedPosts.filter(post => !matchedPosts.find(m => m.id === post.id));
+      matchedPosts = [...matchedPosts, ...remaining.slice(0, 2 - matchedPosts.length)];
+    }
+    const relatedPostsForService = matchedPosts.slice(0, 2);
+
+    const relatedPostsHtml = relatedPostsForService.length > 0 ? `
+      <div class="mt-12 pt-8 border-t border-brand-navy/10">
+        <div class="text-xs uppercase tracking-[0.2em] text-brand-gold font-bold mb-2">Related Insights</div>
+        <h4 class="text-2xl font-serif text-brand-navy mb-6">Articles & Legal Advisory</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          ${relatedPostsForService.map((p: any) => {
+            const pSlug = getPostSlug(p);
+            const pTitle = getServerTranslation(p.title, 'en', p.language);
+            const pCat = getPrerenderCategory(p.category, 'en');
+            const pExcerpt = getServerTranslation(p.excerpt, 'en', p.language) || '';
+            return `
+              <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between">
+                <div>
+                  <div class="text-brand-gold text-[10px] uppercase tracking-wider font-bold mb-2">${pCat}</div>
+                  <h5 class="text-lg font-serif text-brand-navy mb-2">
+                    <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold transition-colors">${pTitle}</a>
+                  </h5>
+                  <p class="text-gray-500 font-light text-xs line-clamp-2 mb-4">${pExcerpt}</p>
+                </div>
+                <a href="/blog/${pSlug}/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                  Read Article →
+                </a>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    const otherServicesList = mergedServices
+      .filter((s: any) => (s.id || '').toString().trim().toLowerCase() !== serviceId)
+      .slice(0, 5);
+    const otherServicesHtml = `
+      <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm">
+        <div class="text-xs uppercase tracking-[0.2em] text-brand-gold font-bold mb-4">Other Practice Areas</div>
+        <ul class="space-y-3 text-sm">
+          ${otherServicesList.map((s: any) => {
+            const oId = (s.id || '').toString().trim().toLowerCase();
+            const oTitle = getServerTranslation(s.title, 'en');
+            return `
+              <li>
+                <a href="/service/${oId}/" class="text-brand-navy hover:text-brand-gold font-medium transition-colors flex items-center justify-between">
+                  <span>${oTitle}</span>
+                  <span class="text-brand-gold text-xs">→</span>
+                </a>
+              </li>
+            `;
+          }).join('')}
+        </ul>
+      </div>
+    `;
+
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
-      <div class="min-h-screen bg-bg-deep font-sans antialiased">
-        <main class="pt-24">
+      <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+        ${navHtml}
+        <main class="pt-24 flex-grow">
           <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 opacity-20">
               <img 
@@ -528,23 +696,58 @@ async function main() {
               <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
             </div>
           </div>
-          <div class="max-w-4xl mx-auto px-6 py-16">
-            <p class="text-xl text-gray-600 font-light leading-relaxed mb-8 text-center">
-              ${serviceDescription}
-            </p>
-            
-            <div class="flex flex-wrap gap-4 justify-center my-12">
-              ${bulletsHtml}
-            </div>
-            
-            <div class="mt-12">
-              <h3 class="text-2xl font-serif text-brand-navy mb-4">Our Methodology</h3>
-              <p class="text-gray-600 font-light leading-relaxed">
-                We handle the matters that matter through a rigorous, four-stage process that combines in-depth research, multi-disciplinary consultation, and aggressive advocacy. Whether you are an enterprise seeking global stability or an individual navigating life-changing transitions, our counsel is direct, diligent, and future-proof.
-              </p>
+          
+          <div class="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="Breadcrumbs" class="mb-8 text-xs uppercase tracking-wider text-gray-500 font-medium">
+              <a href="/" class="hover:text-brand-gold transition-colors">Home</a>
+              <span class="mx-2">/</span>
+              <a href="/services/" class="hover:text-brand-gold transition-colors">Services</a>
+              <span class="mx-2">/</span>
+              <span class="text-brand-navy font-bold">${serviceTitle}</span>
+            </nav>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <div class="lg:col-span-2">
+                <p class="text-xl text-gray-700 font-light leading-relaxed mb-8">
+                  ${serviceDescription}
+                </p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-8">
+                  ${bulletsHtml}
+                </div>
+                
+                <div class="mt-12 bg-white p-8 border border-brand-navy/5 rounded-sm shadow-sm">
+                  <h3 class="text-2xl font-serif text-brand-navy mb-4">Our Methodology</h3>
+                  <p class="text-gray-600 font-light leading-relaxed mb-4">
+                    We handle the matters that matter through a rigorous, four-stage process that combines in-depth research, multi-disciplinary consultation, and aggressive advocacy. Whether you are an enterprise seeking global stability or an individual navigating life-changing transitions, our counsel is direct, diligent, and future-proof.
+                  </p>
+                  <p class="text-gray-600 font-light leading-relaxed">
+                    Our multidisciplinary team in Istanbul and London coordinates closely to ensure full compliance with Turkish administrative law, international treaties, and financial regulatory frameworks.
+                  </p>
+                </div>
+
+                ${relatedPostsHtml}
+              </div>
+
+              <aside class="space-y-6">
+                <div class="p-8 bg-brand-navy text-white rounded-sm shadow-lg">
+                  <div class="text-xs uppercase tracking-[0.25em] text-brand-gold font-bold mb-3">Direct Counsel</div>
+                  <h4 class="text-2xl font-serif mb-4">Discuss Your Legal Matter</h4>
+                  <p class="text-sm text-brand-offwhite/80 font-light leading-relaxed mb-6">
+                    Connect directly with our specialist legal team regarding ${serviceTitle} to receive a strategic case assessment.
+                  </p>
+                  <a href="/#contact" class="block w-full py-3 bg-brand-gold text-brand-navy font-bold text-center text-xs uppercase tracking-widest rounded-sm hover:bg-brand-gold/90 transition-all">
+                    Schedule Consultation →
+                  </a>
+                </div>
+
+                ${otherServicesHtml}
+              </aside>
             </div>
           </div>
         </main>
+        ${footerHtml}
       </div>
     `;
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
@@ -560,43 +763,152 @@ async function main() {
   // Prerender homepage fallback skeleton in dist/index.html
   console.log("Prerendering homepage fallback skeleton in dist/index.html...");
   const homepageSkeleton = `
-    <div class="min-h-screen bg-bg-deep font-sans antialiased">
-      <section class="relative min-h-[90vh] flex items-center pt-24 overflow-hidden">
-        <div class="absolute top-20 inset-inline-end-0 w-1/2 h-full bg-brand-navy/5 -skew-x-12 -z-10"></div>
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
-          <div>
-            <div class="text-xs uppercase tracking-[0.4em] font-medium text-brand-gold mb-6">
-              RESEN LEGAL & CONSULTANCY
+    <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+      ${navHtml}
+      <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="relative min-h-[85vh] flex items-center pt-28 pb-16 overflow-hidden">
+          <div class="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+            <div>
+              <div class="text-xs uppercase tracking-[0.4em] font-medium text-brand-gold mb-6">
+                RESEN LEGAL & CONSULTANCY
+              </div>
+              <h1 class="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.95] text-brand-navy mb-8 break-words">
+                We handle the matters that matter.
+              </h1>
+              <p class="text-lg md:text-xl text-gray-600 max-w-lg mb-10 leading-relaxed font-light">
+                Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.
+              </p>
+              <div class="flex flex-wrap gap-4">
+                <a href="/#contact" class="bg-brand-navy text-white px-8 py-4 rounded-sm font-medium tracking-wide shadow-xl shadow-brand-navy/10 hover:bg-brand-navy/90 transition-all text-center">
+                  GET IN TOUCH
+                </a>
+                <a href="/services/" class="border border-brand-navy/20 text-brand-navy px-8 py-4 rounded-sm font-medium tracking-wide hover:bg-brand-navy/5 transition-all text-center">
+                  OUR PRACTICE AREAS
+                </a>
+              </div>
             </div>
-            <h1 class="text-4xl sm:text-5xl md:text-8xl font-serif leading-[0.95] md:leading-[0.9] text-brand-navy mb-8 break-words">
-              We handle the matters that matter.
-            </h1>
-            <p class="text-lg md:text-xl text-gray-600 max-w-lg mb-10 leading-relaxed font-light">
-              Resen Legal & Consultancy is a premier boutique international law firm based in Istanbul and London, specializing in Turkish citizenship by investment, residency, corporate law, real estate, and cross-border commercial transactions.
-            </p>
-            <div class="flex flex-col gap-4">
-              <div class="bg-brand-navy text-white px-10 py-5 rounded-sm flex items-center justify-center gap-3 font-medium tracking-wide w-full sm:w-72 shadow-xl shadow-brand-navy/10 text-center">
-                GET IN TOUCH
+            <div class="relative">
+              <div class="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">
+                <img 
+                  src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop" 
+                  srcset="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=640&auto=format&fit=crop 640w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=960&auto=format&fit=crop 960w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1280&auto=format&fit=crop 1280w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop 2000w"
+                  sizes="(max-width: 1023px) 100vw, 50vw"
+                  alt="Legal Library"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="w-full h-full object-cover object-center"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/40 to-transparent"></div>
               </div>
             </div>
           </div>
-          <div class="relative">
-            <div class="aspect-video md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-2xl shadow-brand-navy/20">
-              <img 
-                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop" 
-                srcset="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=640&auto=format&fit=crop 640w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=960&auto=format&fit=crop 960w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1280&auto=format&fit=crop 1280w, https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop 2000w"
-                sizes="(max-width: 1023px) 100vw, 50vw"
-                alt="Legal Library"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-                class="w-full h-full object-cover object-center"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-brand-navy/40 to-transparent"></div>
+        </section>
+
+        <!-- Practice Areas Grid -->
+        <section class="py-20 bg-white border-t border-brand-navy/5">
+          <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+              <div>
+                <div class="text-xs uppercase tracking-[0.3em] font-medium text-brand-gold mb-3">Our Expertise</div>
+                <h2 class="text-3xl md:text-5xl font-serif text-brand-navy">Specialized Practice Areas</h2>
+              </div>
+              <a href="/services/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                View All Services →
+              </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              ${mergedServices.map((s: any) => {
+                const sId = (s.id || '').toString().trim().toLowerCase();
+                const sTitle = getServerTranslation(s.title, 'en');
+                const sDesc = getServerTranslation(s.description, 'en');
+                return `
+                  <div class="p-8 bg-brand-offwhite/50 border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between hover:shadow-lg transition-shadow">
+                    <div>
+                      <div class="text-brand-gold text-[10px] uppercase tracking-[0.2em] font-bold mb-3">Practice Area</div>
+                      <h3 class="text-2xl font-serif text-brand-navy mb-4">
+                        <a href="/service/${sId}/" class="text-brand-navy hover:text-brand-gold transition-colors">${sTitle}</a>
+                      </h3>
+                      <p class="text-gray-600 font-light text-sm leading-relaxed mb-6">${sDesc}</p>
+                    </div>
+                    <a href="/service/${sId}/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                      Explore Practice Area →
+                    </a>
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- Firm Overview / About Section -->
+        <section class="py-20 bg-brand-offwhite">
+          <div class="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div class="text-xs uppercase tracking-[0.3em] font-medium text-brand-gold mb-3">The Firm</div>
+              <h2 class="text-3xl md:text-5xl font-serif text-brand-navy mb-6">Crafting Legal Solutions With Precision & Integrity</h2>
+              <p class="text-gray-600 font-light text-base leading-relaxed mb-6">
+                At Resen Legal & Consultancy, we bridge tradition and innovation. Based in Istanbul and London, our firm handles complex Turkish citizenship by investment, residency applications, corporate restructuring, real estate transactions, and high-stakes commercial disputes.
+              </p>
+              <div class="flex gap-4">
+                <a href="/about/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                  Learn More About Our Firm →
+                </a>
+              </div>
+            </div>
+            <div class="space-y-6">
+              <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm">
+                <h4 class="font-serif text-xl text-brand-navy mb-2">Leadership & Experience</h4>
+                <p class="text-sm text-gray-500 font-light leading-relaxed mb-4">
+                  Led by Mr. Fetanet Darıoğlu, our attorneys bring decades of collective jurisprudence and international consultancy to high-net-worth individuals and corporate entities.
+                </p>
+                <a href="/team/" class="text-xs uppercase tracking-widest font-bold text-brand-navy hover:text-brand-gold transition-colors">
+                  Meet Our Team →
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Latest Insights Section -->
+        <section class="py-20 bg-white">
+          <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+              <div>
+                <div class="text-xs uppercase tracking-[0.3em] font-medium text-brand-gold mb-3">Advisory & Commentary</div>
+                <h2 class="text-3xl md:text-5xl font-serif text-brand-navy">Latest Legal Insights</h2>
+              </div>
+              <a href="/blog/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                Explore All Insights →
+              </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              ${publishedPosts.slice(0, 3).map((p: any) => {
+                const pSlug = getPostSlug(p);
+                const pTitle = getServerTranslation(p.title, 'en', p.language);
+                const pCat = getPrerenderCategory(p.category, 'en');
+                const pExcerpt = getServerTranslation(p.excerpt, 'en', p.language) || '';
+                return `
+                  <article class="p-6 bg-brand-offwhite/40 border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div class="text-brand-gold text-[10px] uppercase tracking-wider font-bold mb-2">${pCat}</div>
+                      <h3 class="text-xl font-serif text-brand-navy mb-3">
+                        <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold transition-colors">${pTitle}</a>
+                      </h3>
+                      <p class="text-gray-500 font-light text-xs line-clamp-3 mb-6">${pExcerpt}</p>
+                    </div>
+                    <a href="/blog/${pSlug}/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                      Read Analysis →
+                    </a>
+                  </article>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </section>
+      </main>
+      ${footerHtml}
     </div>
   `;
   let homepageHtml = htmlTemplate.replace('<div id="root"></div>', `<div id="root">${homepageSkeleton}</div>`);
@@ -903,35 +1215,326 @@ async function main() {
 
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const headingText = page.title.split(" | ")[0];
-    const bodySkeleton = `
-      <div class="min-h-screen bg-bg-deep font-sans antialiased">
-        <main class="pt-24">
-          <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-            <div class="absolute inset-0 opacity-20">
-              <img 
-                src="${page.image}" 
-                alt="${headingText}" 
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="relative z-10 text-center px-6">
-              <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
-                EXCELLENCE & INTEGRITY
+    let bodySkeleton = "";
+
+    if (page.path === "blog") {
+      bodySkeleton = `
+        <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+          ${navHtml}
+          <main class="pt-24 flex-grow">
+            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 opacity-20">
+                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
               </div>
-              <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
-                ${headingText}
-              </h1>
-              <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
+              <div class="relative z-10 text-center px-6">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">LEGAL INSIGHTS & ADVISORY</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
+                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
+                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+              </div>
             </div>
-          </div>
-          <div class="max-w-4xl mx-auto px-6 py-16 text-center">
-            <p class="text-xl text-gray-600 font-light leading-relaxed mb-8">
-              ${page.description}
-            </p>
-          </div>
-        </main>
-      </div>
-    `;
+
+            <!-- Recent Articles Grid -->
+            <section class="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+              <div class="flex items-center justify-between mb-10">
+                <h2 class="text-2xl font-serif text-brand-navy">Recent Legal Commentary</h2>
+                <div class="text-xs uppercase tracking-wider text-gray-500">${publishedPosts.length} Published Articles</div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                ${publishedPosts.slice(0, 9).map((p: any) => {
+                  const pSlug = getPostSlug(p);
+                  const pTitle = getServerTranslation(p.title, 'en', p.language);
+                  const pCat = getPrerenderCategory(p.category, 'en');
+                  const pExcerpt = getServerTranslation(p.excerpt, 'en', p.language) || '';
+                  const pDate = p.date || '';
+                  return `
+                    <article class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                      <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                          <span class="text-brand-gold text-[10px] uppercase tracking-wider font-bold">${pCat}</span>
+                          <time class="text-gray-400 text-xs">${pDate}</time>
+                        </div>
+                        <h3 class="text-xl font-serif text-brand-navy mb-3">
+                          <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold transition-colors">${pTitle}</a>
+                        </h3>
+                        <p class="text-gray-500 font-light text-xs line-clamp-3 mb-6">${pExcerpt}</p>
+                      </div>
+                      <a href="/blog/${pSlug}/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                        Read Analysis →
+                      </a>
+                    </article>
+                  `;
+                }).join('')}
+              </div>
+            </section>
+
+            <!-- Complete Semantic Article Index -->
+            <section class="py-16 bg-brand-offwhite border-t border-brand-navy/10">
+              <div class="max-w-7xl mx-auto px-6 lg:px-12">
+                <div class="mb-8">
+                  <div class="text-xs uppercase tracking-[0.2em] font-bold text-brand-gold mb-2">Comprehensive Index</div>
+                  <h2 class="text-2xl font-serif text-brand-navy">All Published Insights & Publications</h2>
+                </div>
+                <div class="bg-white rounded-sm border border-brand-navy/5 shadow-sm divide-y divide-brand-navy/5">
+                  ${publishedPosts.map((p: any) => {
+                    const pSlug = getPostSlug(p);
+                    const pTitle = getServerTranslation(p.title, 'en', p.language);
+                    const pCat = getPrerenderCategory(p.category, 'en');
+                    const pDate = p.date || '';
+                    return `
+                      <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm hover:bg-brand-offwhite/30 transition-colors">
+                        <div class="flex items-center gap-3">
+                          <span class="text-[10px] uppercase font-bold text-brand-gold bg-brand-navy/5 px-2.5 py-1 rounded-sm shrink-0">${pCat}</span>
+                          <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold font-medium transition-colors">${pTitle}</a>
+                        </div>
+                        <time class="text-xs text-gray-500 shrink-0 font-light">${pDate}</time>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </section>
+          </main>
+          ${footerHtml}
+        </div>
+      `;
+    } else if (page.path === "services") {
+      bodySkeleton = `
+        <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+          ${navHtml}
+          <main class="pt-24 flex-grow">
+            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 opacity-20">
+                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
+              </div>
+              <div class="relative z-10 text-center px-6">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">PRACTICE AREAS & CONSULTANCY</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
+                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
+                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+              </div>
+            </div>
+
+            <!-- Services Grid -->
+            <section class="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                ${mergedServices.map((s: any) => {
+                  const sId = (s.id || '').toString().trim().toLowerCase();
+                  const sTitle = getServerTranslation(s.title, 'en');
+                  const sDesc = getServerTranslation(s.description, 'en');
+                  const sBullets = s.bullets?.en || [];
+                  return `
+                    <div class="p-8 bg-white border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between hover:shadow-lg transition-shadow">
+                      <div>
+                        <div class="text-brand-gold text-[10px] uppercase tracking-[0.2em] font-bold mb-3">Practice Area</div>
+                        <h2 class="text-2xl font-serif text-brand-navy mb-4">
+                          <a href="/service/${sId}/" class="text-brand-navy hover:text-brand-gold transition-colors">${sTitle}</a>
+                        </h2>
+                        <p class="text-gray-600 font-light text-sm leading-relaxed mb-6">${sDesc}</p>
+                        ${sBullets.length > 0 ? `
+                          <ul class="space-y-2 mb-6 text-xs text-gray-500">
+                            ${sBullets.slice(0, 3).map((b: string) => `<li class="flex items-center gap-2"><span class="text-brand-gold">✓</span> <span>${b}</span></li>`).join('')}
+                          </ul>
+                        ` : ''}
+                      </div>
+                      <a href="/service/${sId}/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                        Explore Details →
+                      </a>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </section>
+
+            <!-- Consultation CTA -->
+            <section class="py-16 bg-brand-offwhite border-t border-brand-navy/10">
+              <div class="max-w-4xl mx-auto px-6 text-center">
+                <h3 class="text-3xl font-serif text-brand-navy mb-4">Require Bespoke Legal Representation?</h3>
+                <p class="text-gray-600 font-light leading-relaxed mb-8">
+                  Contact our senior advocates in Istanbul and London to discuss your commercial, citizenship, or private client matter confidentially.
+                </p>
+                <a href="/#contact" class="inline-block px-8 py-4 bg-brand-navy text-white text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-brand-gold hover:text-brand-navy transition-all">
+                  Schedule an Initial Consultation
+                </a>
+              </div>
+            </section>
+          </main>
+          ${footerHtml}
+        </div>
+      `;
+    } else if (page.path === "about") {
+      bodySkeleton = `
+        <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+          ${navHtml}
+          <main class="pt-24 flex-grow">
+            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 opacity-20">
+                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
+              </div>
+              <div class="relative z-10 text-center px-6">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">ABOUT RESEN LEGAL</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
+                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
+                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+              </div>
+            </div>
+
+            <!-- About Content Section -->
+            <section class="max-w-5xl mx-auto px-6 lg:px-12 py-16">
+              <div class="space-y-12">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.25em] font-bold text-brand-gold mb-3">Our Mission</div>
+                  <h2 class="text-3xl md:text-4xl font-serif text-brand-navy mb-6">Navigating Complexity With Global Perspective</h2>
+                  <p class="text-lg text-gray-700 font-light leading-relaxed mb-6">
+                    Resen Legal & Consultancy was founded with a singular dedication: delivering uncompromised legal counsel across Turkish and international jurisdictions. Operating at the intersection of European commerce and Turkish jurisprudence, we guide corporations, investors, and high-net-worth families through their most critical legal milestones.
+                  </p>
+                  <p class="text-gray-600 font-light leading-relaxed">
+                    Our core focus encompasses Turkish citizenship by investment, cross-border corporate governance, real estate acquisition, private client inheritance, and commercial dispute resolution. With headquarters in Istanbul and liaison capabilities in London, we provide true cross-border accessibility.
+                  </p>
+                </div>
+
+                <!-- Three Core Pillars -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-brand-navy/10">
+                  <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm">
+                    <h3 class="font-serif text-xl text-brand-navy mb-3">Precision & Mastery</h3>
+                    <p class="text-sm text-gray-600 font-light leading-relaxed">
+                      Every contract, filing, and brief is drafted to the highest standards of international jurisprudence and local administrative compliance.
+                    </p>
+                  </div>
+                  <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm">
+                    <h3 class="font-serif text-xl text-brand-navy mb-3">Discretion & Trust</h3>
+                    <p class="text-sm text-gray-600 font-light leading-relaxed">
+                      We protect our clients' confidential interests and assets with rigorous institutional security protocols and fiduciary loyalty.
+                    </p>
+                  </div>
+                  <div class="p-6 bg-white border border-brand-navy/5 rounded-sm shadow-sm">
+                    <h3 class="font-serif text-xl text-brand-navy mb-3">Cross-Border Synergy</h3>
+                    <p class="text-sm text-gray-600 font-light leading-relaxed">
+                      Connecting Turkish commercial opportunities with European, Gulf, and international private wealth management.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Internal Navigation CTA Links -->
+                <div class="pt-8 border-t border-brand-navy/10 flex flex-wrap items-center justify-between gap-6">
+                  <div class="flex flex-wrap gap-6">
+                    <a href="/services/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                      Our Practice Areas →
+                    </a>
+                    <a href="/team/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                      Meet The Team →
+                    </a>
+                    <a href="/blog/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                      Read Legal Insights →
+                    </a>
+                  </div>
+                  <a href="/#contact" class="px-6 py-3 bg-brand-navy text-white text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-brand-navy/90 transition-all">
+                    Contact Our Advocates
+                  </a>
+                </div>
+              </div>
+            </section>
+          </main>
+          ${footerHtml}
+        </div>
+      `;
+    } else if (page.path === "team") {
+      bodySkeleton = `
+        <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
+          ${navHtml}
+          <main class="pt-24 flex-grow">
+            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 opacity-20">
+                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
+              </div>
+              <div class="relative z-10 text-center px-6">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">ATTORNEYS & COUNSEL</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
+                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
+                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+              </div>
+            </div>
+
+            <!-- Team Members Grid -->
+            <section class="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                ${MOCK_TEAM.map((member: any) => {
+                  const memberName = member.name;
+                  const memberRole = getServerTranslation(member.role, 'en');
+                  const memberBio = getServerTranslation(member.bio, 'en');
+                  return `
+                    <div class="p-8 bg-white border border-brand-navy/5 rounded-sm shadow-sm flex flex-col justify-between hover:shadow-lg transition-shadow">
+                      <div>
+                        <div class="aspect-square bg-gray-100 rounded-sm mb-6 overflow-hidden">
+                          <img src="${member.image}" alt="${memberName}" class="w-full h-full object-cover object-top" />
+                        </div>
+                        <div class="text-brand-gold text-[10px] uppercase tracking-wider font-bold mb-1">${memberRole}</div>
+                        <h2 class="text-2xl font-serif text-brand-navy mb-3">${memberName}</h2>
+                        <p class="text-gray-600 font-light text-xs leading-relaxed mb-4">${memberBio}</p>
+                        ${member.email ? `
+                          <p class="text-xs text-brand-gold font-medium mb-4"><a href="mailto:${member.email}" class="hover:underline">${member.email}</a></p>
+                        ` : ''}
+                      </div>
+                      <a href="/#contact" class="text-xs uppercase tracking-widest font-black text-brand-navy hover:text-brand-gold transition-colors">
+                        Request Consultation →
+                      </a>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Internal Links Section -->
+              <div class="mt-16 p-8 bg-brand-offwhite rounded-sm border border-brand-navy/5 flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div>
+                  <h3 class="font-serif text-xl text-brand-navy mb-1">Explore Firm Expertise</h3>
+                  <p class="text-xs text-gray-500 font-light">Learn more about our practice areas or read publications authored by our team.</p>
+                </div>
+                <div class="flex gap-6">
+                  <a href="/services/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                    Our Services →
+                  </a>
+                  <a href="/blog/" class="text-xs uppercase tracking-widest font-black text-brand-gold hover:text-brand-navy transition-colors">
+                    Publications →
+                  </a>
+                </div>
+              </div>
+            </section>
+          </main>
+          ${footerHtml}
+        </div>
+      `;
+    } else {
+      // Fallback for private or utility static pages (e.g. resen-gate)
+      bodySkeleton = `
+        <div class="min-h-screen bg-bg-deep font-sans antialiased">
+          <main class="pt-24">
+            <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 opacity-20">
+                <img 
+                  src="${page.image}" 
+                  alt="${headingText}" 
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div class="relative z-10 text-center px-6">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
+                  EXCELLENCE & INTEGRITY
+                </div>
+                <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
+                  ${headingText}
+                </h1>
+                <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
+              </div>
+            </div>
+            <div class="max-w-4xl mx-auto px-6 py-16 text-center">
+              <p class="text-xl text-gray-600 font-light leading-relaxed mb-8">
+                ${page.description}
+              </p>
+            </div>
+          </main>
+        </div>
+      `;
+    }
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySkeleton}</div>`);
 
     // Write out to dist/:path/index.html
