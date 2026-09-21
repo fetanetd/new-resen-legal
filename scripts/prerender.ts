@@ -111,6 +111,21 @@ function isPostPublishedPrerender(post: any): boolean {
   return true;
 }
 
+function getSocialThumbnailUrl(imageUrl?: string): string {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return "https://res.cloudinary.com/dlrsifk2y/image/upload/c_fill,w_256,h_256,g_auto,q_auto,f_jpg/v1783084549/og_xi5mco.jpg";
+  }
+
+  if (imageUrl.includes("res.cloudinary.com") && imageUrl.includes("/upload/")) {
+    if (imageUrl.includes("/upload/c_fill,w_256,h_256")) {
+      return imageUrl;
+    }
+    return imageUrl.replace("/upload/", "/upload/c_fill,w_256,h_256,g_auto,q_auto,f_jpg/");
+  }
+
+  return imageUrl;
+}
+
 // Timeout wrap for firestore calls to ensure build never hangs
 const withTimeout = <T>(promise: Promise<T>, ms: number = 15000): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
@@ -375,7 +390,8 @@ async function main() {
     html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${postCanonical}" />`);
-    html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${postImage}" />`);
+    const postSocialThumbnail = getSocialThumbnailUrl(postImage);
+    html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${postSocialThumbnail}" />\n    <meta property="og:image:width" content="256" />\n    <meta property="og:image:height" content="256" />`);
     
     html = html.replace(/<meta data-static="true" property="twitter:title" content="[^"]*"\s*\/?>/, `<meta property="twitter:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="twitter:description" content="[^"]*"\s*\/?>/, `<meta property="twitter:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);

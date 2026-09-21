@@ -269,3 +269,23 @@ export function isPostScheduledFuture(post: any): boolean {
   return isNaN(publishTime) || publishTime > Date.now();
 }
 
+/**
+ * Transforms Cloudinary URLs into a 256x256 thumbnail optimized for WhatsApp / Open Graph link previews.
+ * WhatsApp renders compact thumbnails instead of oversized banners when the image is 256x256 square and below 300px.
+ */
+export function getSocialThumbnailUrl(imageUrl?: string): string {
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return 'https://res.cloudinary.com/dlrsifk2y/image/upload/c_fill,w_256,h_256,g_auto,q_auto,f_jpg/v1783084549/og_xi5mco.jpg';
+  }
+
+  if (imageUrl.includes('res.cloudinary.com') && imageUrl.includes('/upload/')) {
+    // If it already has c_fill or similar transformation, avoid stacking
+    if (imageUrl.includes('/upload/c_fill,w_256,h_256')) {
+      return imageUrl;
+    }
+    return imageUrl.replace('/upload/', '/upload/c_fill,w_256,h_256,g_auto,q_auto,f_jpg/');
+  }
+
+  return imageUrl;
+}
+

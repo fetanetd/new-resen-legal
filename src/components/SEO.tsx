@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { getSocialThumbnailUrl } from '../lib/utils';
 
 interface SEOProps {
   title?: string;
@@ -61,6 +62,7 @@ const SEO: React.FC<SEOProps> = ({
   const baseUrl = 'https://resenlegal.com';
   const pageUrl = canonical ? `${baseUrl}${canonical}` : baseUrl;
   const metaImage = image || 'https://res.cloudinary.com/dlrsifk2y/image/upload/v1783084549/og_xi5mco.jpg';
+  const socialThumbnailImage = getSocialThumbnailUrl(metaImage);
   const defaultKeywords = dynamicSettings?.keywords || 'legal consultancy, immigration lawyer, corporate law Turkey, GDPR compliance, Resen Legal';
   const metaKeywords = keywords ? `${keywords}, ${defaultKeywords}` : defaultKeywords;
 
@@ -77,14 +79,14 @@ const SEO: React.FC<SEOProps> = ({
       <link rel="canonical" href={pageUrl} />
       <html lang={resolvedLang} />
 
-      {/* Open Graph / Facebook */}
+      {/* Open Graph / Facebook / WhatsApp */}
       <meta property="og:type" content={article ? 'article' : 'website'} />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={metaDescription} />
-      <meta property="og:image" content={metaImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      <meta property="og:image" content={socialThumbnailImage} />
+      <meta property="og:image:width" content="256" />
+      <meta property="og:image:height" content="256" />
       <meta property="og:image:alt" content={title || siteName} />
       <meta property="og:locale" content={i18n.language === 'tr' ? 'tr_TR' : 'en_US'} />
       <meta property="og:site_name" content={siteName} />
@@ -99,7 +101,7 @@ const SEO: React.FC<SEOProps> = ({
         <meta property="article:section" content={section} />
       )}
 
-      {/* Twitter */}
+      {/* Twitter - Keep high-resolution image with summary_large_image */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={pageUrl} />
       <meta name="twitter:title" content={fullTitle} />
