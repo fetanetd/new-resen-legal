@@ -101,12 +101,12 @@ const SEO: React.FC<SEOProps> = ({
         <meta property="article:section" content={section} />
       )}
 
-      {/* Twitter - Keep high-resolution image with summary_large_image */}
-      <meta name="twitter:card" content="summary_large_image" />
+      {/* Twitter: compact summary card for blog detail, summary_large_image for others */}
+      <meta name="twitter:card" content={article ? 'summary' : 'summary_large_image'} />
       <meta name="twitter:url" content={pageUrl} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
-      <meta name="twitter:image" content={metaImage} />
+      <meta name="twitter:image" content={article ? socialThumbnailImage : metaImage} />
 
       {/* Structured Data */}
       {structuredData && (

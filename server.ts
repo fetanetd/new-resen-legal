@@ -129,6 +129,21 @@ function getSocialThumbnailUrl(imageUrl?: string): string {
   return imageUrl;
 }
 
+function getLinkedInLargeImageUrl(imageUrl?: string): string {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return "https://res.cloudinary.com/dlrsifk2y/image/upload/c_fill,w_1200,h_630,g_auto,q_auto,f_jpg/v1783084549/og_xi5mco.jpg";
+  }
+
+  if (imageUrl.includes("res.cloudinary.com") && imageUrl.includes("/upload/")) {
+    if (imageUrl.includes("/upload/c_fill,w_1200,h_630")) {
+      return imageUrl;
+    }
+    return imageUrl.replace("/upload/", "/upload/c_fill,w_1200,h_630,g_auto,q_auto,f_jpg/");
+  }
+
+  return imageUrl;
+}
+
 // Read and parse Firebase configuration from file
 const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
 let firebaseDb: any = null;
@@ -850,13 +865,28 @@ async function startServer() {
             html = html.replace(/<meta data-static="true" property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
             html = html.replace(/<meta data-static="true" property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);
             html = html.replace(/<meta data-static="true" property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${postCanonical}" />`);
-            const postSocialThumbnail = getSocialThumbnailUrl(postImage);
-            html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${postSocialThumbnail}" />\n    <meta property="og:image:width" content="256" />\n    <meta property="og:image:height" content="256" />`);
+
+            // Detect LinkedInBot in user-agent.
+            // LinkedIn reads standard Open Graph tags and requires 1200x630 to show a large professional card.
+            // WhatsApp, Facebook, and all other crawlers receive the compact 256x256 thumbnail.
+            const userAgent = (req.headers["user-agent"] || "").toLowerCase();
+            const isLinkedInBot = userAgent.includes("linkedinbot");
+
+            if (isLinkedInBot) {
+              const linkedInLargeImage = getLinkedInLargeImageUrl(postImage);
+              html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${linkedInLargeImage}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />`);
+              html = html.replace(/<meta data-static="true" property="twitter:card" content="[^"]*"\s*\/?>/, `<meta property="twitter:card" content="summary_large_image" />`);
+              html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${linkedInLargeImage}" />`);
+            } else {
+              const postSocialThumbnail = getSocialThumbnailUrl(postImage);
+              html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${postSocialThumbnail}" />\n    <meta property="og:image:width" content="256" />\n    <meta property="og:image:height" content="256" />`);
+              html = html.replace(/<meta data-static="true" property="twitter:card" content="[^"]*"\s*\/?>/, `<meta property="twitter:card" content="summary" />`);
+              html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${postSocialThumbnail}" />`);
+            }
 
             html = html.replace(/<meta data-static="true" property="twitter:title" content="[^"]*"\s*\/?>/, `<meta property="twitter:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
             html = html.replace(/<meta data-static="true" property="twitter:description" content="[^"]*"\s*\/?>/, `<meta property="twitter:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);
             html = html.replace(/<meta data-static="true" property="twitter:url" content="[^"]*"\s*\/?>/, `<meta property="twitter:url" content="${postCanonical}" />`);
-            html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${postImage}" />`);
 
             // Inject custom script and canonical tags to closing </head>
             html = html.replace('</head>', `<link rel="canonical" href="${postCanonical}" />\n<script type="application/ld+json">${JSON.stringify(articleStructuredData)}</script>\n</head>`);

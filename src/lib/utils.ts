@@ -289,3 +289,21 @@ export function getSocialThumbnailUrl(imageUrl?: string): string {
   return imageUrl;
 }
 
+/**
+ * Transforms Cloudinary URLs into a 1200x630 high-resolution banner optimized for LinkedIn link previews.
+ */
+export function getLinkedInLargeImageUrl(imageUrl?: string): string {
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return 'https://res.cloudinary.com/dlrsifk2y/image/upload/c_fill,w_1200,h_630,g_auto,q_auto,f_jpg/v1783084549/og_xi5mco.jpg';
+  }
+
+  if (imageUrl.includes('res.cloudinary.com') && imageUrl.includes('/upload/')) {
+    if (imageUrl.includes('/upload/c_fill,w_1200,h_630')) {
+      return imageUrl;
+    }
+    return imageUrl.replace('/upload/', '/upload/c_fill,w_1200,h_630,g_auto,q_auto,f_jpg/');
+  }
+
+  return imageUrl;
+}
+

@@ -393,10 +393,11 @@ async function main() {
     const postSocialThumbnail = getSocialThumbnailUrl(postImage);
     html = html.replace(/<meta data-static="true" property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${postSocialThumbnail}" />\n    <meta property="og:image:width" content="256" />\n    <meta property="og:image:height" content="256" />`);
     
+    html = html.replace(/<meta data-static="true" property="twitter:card" content="[^"]*"\s*\/?>/, `<meta property="twitter:card" content="summary" />`);
     html = html.replace(/<meta data-static="true" property="twitter:title" content="[^"]*"\s*\/?>/, `<meta property="twitter:title" content="${fullTitle.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="twitter:description" content="[^"]*"\s*\/?>/, `<meta property="twitter:description" content="${postExcerpt.replace(/"/g, '&quot;')}" />`);
     html = html.replace(/<meta data-static="true" property="twitter:url" content="[^"]*"\s*\/?>/, `<meta property="twitter:url" content="${postCanonical}" />`);
-    html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${postImage}" />`);
+    html = html.replace(/<meta data-static="true" property="twitter:image" content="[^"]*"\s*\/?>/, `<meta property="twitter:image" content="${postSocialThumbnail}" />`);
     
     // Replace the default canonical tag
     if (html.includes('<link rel="canonical" href="https://resenlegal.com/" />')) {
