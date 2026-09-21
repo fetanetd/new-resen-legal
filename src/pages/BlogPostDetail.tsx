@@ -1510,25 +1510,25 @@ export default function BlogPostDetail() {
           </div>
 
           {/* Related Posts Section */}
-          {relatedPosts.length > 0 && (
-            <div className="mt-40 pt-20 border-t border-brand-navy/5 blog-related-posts">
-              <div className="flex flex-col items-center text-center justify-center mb-16 gap-6 max-w-2xl mx-auto">
-                <div className="flex flex-col items-center w-full">
-                  <div className="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-gold mb-4 text-center">
-                    {t('blogSection.continueReading')}
-                  </div>
-                  <h3 className="text-3xl md:text-5xl font-serif text-brand-navy text-center leading-tight">
-                    {t('blogSection.relatedInsights')}
-                  </h3>
+          <div className="mt-40 pt-20 border-t border-brand-navy/5 blog-related-posts">
+            <div className="flex flex-col items-center text-center justify-center mb-16 gap-6 max-w-2xl mx-auto">
+              <div className="flex flex-col items-center w-full">
+                <div className="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-gold mb-4 text-center">
+                  {t('blogSection.continueReading')}
                 </div>
-                <Link 
-                  to="/blog/"
-                  className="text-[10px] uppercase tracking-widest font-black text-brand-gold border-b border-brand-gold/25 pb-2 hover:border-brand-gold transition-all inline-block tracking-[0.25em]"
-                >
-                  {t('blogSection.exploreAllPosts')}
-                </Link>
+                <h3 className="text-3xl md:text-5xl font-serif text-brand-navy text-center leading-tight">
+                  {t('blogSection.relatedInsights')}
+                </h3>
               </div>
+              <Link 
+                to="/blog/"
+                className="text-[10px] uppercase tracking-widest font-black text-brand-gold border-b border-brand-gold/25 pb-2 hover:border-brand-gold transition-all inline-block tracking-[0.25em]"
+              >
+                {t('blogSection.exploreAllPosts')}
+              </Link>
+            </div>
 
+            {relatedPosts.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                 {relatedPosts.map((rPost) => (
                   <motion.article
@@ -1572,8 +1572,8 @@ export default function BlogPostDetail() {
                   </motion.article>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </main>
 

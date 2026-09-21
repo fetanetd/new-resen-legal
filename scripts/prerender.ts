@@ -327,14 +327,14 @@ async function main() {
         .slice(0, 2);
     }
 
-    let relatedSectionHtml = "";
-    if (related.length > 0) {
-      const continueReadingText = postLang === "tr" ? "OKUMAYA DEVAM ET" : "CONTINUE READING";
-      const relatedInsightsText = postLang === "tr" ? "İlgili Yazılar" : "Related Insights";
-      const exploreAllPostsText = postLang === "tr" ? "Tüm yazıları keşfet" : "Explore all posts";
-      const readArticleText = postLang === "tr" ? "Makaleyi Oku" : "Read Article";
+    const continueReadingText = postLang === "tr" ? "OKUMAYA DEVAM ET" : "CONTINUE READING";
+    const relatedInsightsText = postLang === "tr" ? "İlgili Yazılar" : "Related Insights";
+    const exploreAllPostsText = postLang === "tr" ? "Tüm yazıları keşfet" : "Explore all posts";
+    const readArticleText = postLang === "tr" ? "Makaleyi Oku" : "Read Article";
 
-      const relatedCardsHtml = related.map((rPost) => {
+    let relatedCardsHtml = "";
+    if (related.length > 0) {
+      relatedCardsHtml = related.map((rPost) => {
         const rPostSlug = getPostSlug(rPost);
         const rPostTitle = getServerTranslation(rPost.title, postLang, rPost.language);
         const rPostCategory = getPrerenderCategory(rPost.category, postLang);
@@ -379,28 +379,33 @@ async function main() {
           </article>
         `;
       }).join("");
+    }
 
-      relatedSectionHtml = `
-        <div style="margin-top: 10rem; padding-top: 5rem; border-top: 1px solid rgba(6, 78, 59, 0.05);" class="blog-related-posts">
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; margin-bottom: 4rem; max-width: 42rem; margin-left: auto; margin-right: auto; gap: 1.5rem;">
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-              <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.4em; font-weight: 500; color: #BC9C53; margin-bottom: 1rem; text-align: center;">
-                ${continueReadingText}
-              </div>
-              <h3 style="font-size: 2.25rem; font-family: serif; color: #064E3B; text-align: center; margin: 0; line-height: 1.25;">
-                ${relatedInsightsText}
-              </h3>
-            </div>
-            <a href="/blog/" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 900; color: #BC9C53; text-decoration: none; border-bottom: 1px solid rgba(188, 156, 83, 0.25); padding-bottom: 0.5rem; display: inline-block;">
-              ${exploreAllPostsText}
-            </a>
-          </div>
+    const relatedGridHtml = relatedCardsHtml
+      ? `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem;">
             ${relatedCardsHtml}
+          </div>`
+      : "";
+
+    const relatedSectionHtml = `
+      <div style="margin-top: 10rem; padding-top: 5rem; border-top: 1px solid rgba(6, 78, 59, 0.05);" class="blog-related-posts">
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; margin-bottom: 4rem; max-width: 42rem; margin-left: auto; margin-right: auto; gap: 1.5rem;">
+          <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.4em; font-weight: 500; color: #BC9C53; margin-bottom: 1rem; text-align: center;">
+              ${continueReadingText}
+            </div>
+            <h3 style="font-size: 2.25rem; font-family: serif; color: #064E3B; text-align: center; margin: 0; line-height: 1.25;">
+              ${relatedInsightsText}
+            </h3>
           </div>
+          <a href="/blog/" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 900; color: #BC9C53; text-decoration: none; border-bottom: 1px solid rgba(188, 156, 83, 0.25); padding-bottom: 0.5rem; display: inline-block;">
+            ${exploreAllPostsText}
+          </a>
         </div>
-      `;
-    }
+        ${relatedGridHtml}
+      </div>
+    `;
 
     // Inject the complete content structure inside #root container to bypass Client-only SPA blank spots
     const bodySkeleton = `
