@@ -679,38 +679,22 @@ async function main() {
     const bodySkeleton = `
       <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
         ${navHtml}
-        <main class="pt-24 flex-grow">
-          <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-            <div class="absolute inset-0 opacity-20">
-              <img 
-                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80" 
-                alt="${serviceTitle}" 
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="relative z-10 text-center px-6">
-              <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
-                EXPERT PRACTICE AREA
-              </div>
-              <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
-                ${serviceTitle}
-              </h1>
-              <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
-            </div>
-          </div>
-          
-          <div class="max-w-7xl mx-auto px-6 lg:px-12 py-12">
-            <!-- Breadcrumb -->
-            <nav aria-label="Breadcrumbs" class="mb-8 text-xs uppercase tracking-wider text-gray-500 font-medium">
-              <a href="/" class="hover:text-brand-gold transition-colors">Home</a>
-              <span class="mx-2">/</span>
-              <a href="/services/" class="hover:text-brand-gold transition-colors">Services</a>
-              <span class="mx-2">/</span>
-              <span class="text-brand-navy font-bold">${serviceTitle}</span>
-            </nav>
+        <main class="pt-32 pb-24 flex-grow">
+          <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <!-- Breadcrumbs / Back button -->
+            <a href="/" class="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-gray-400 hover:text-brand-navy transition-colors mb-12">
+              ← Back to Home
+            </a>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
               <div class="lg:col-span-2">
+                <div class="text-brand-gold text-xs uppercase tracking-[0.4em] font-medium mb-6">
+                  EXPERT PRACTICE AREA
+                </div>
+                <h1 class="text-5xl md:text-7xl font-serif text-brand-navy mb-8 leading-tight">
+                  ${serviceTitle}
+                </h1>
+                
                 <p class="text-xl text-gray-700 font-light leading-relaxed mb-8">
                   ${serviceDescription}
                 </p>
@@ -733,13 +717,13 @@ async function main() {
               </div>
 
               <aside class="space-y-6">
-                <div class="p-8 bg-brand-navy text-white rounded-sm shadow-lg">
+                <div class="p-8 bg-white border border-brand-navy/10 rounded-sm shadow-sm">
                   <div class="text-xs uppercase tracking-[0.25em] text-brand-gold font-bold mb-3">Direct Counsel</div>
-                  <h4 class="text-2xl font-serif mb-4">Discuss Your Legal Matter</h4>
-                  <p class="text-sm text-brand-offwhite/80 font-light leading-relaxed mb-6">
+                  <h4 class="text-2xl font-serif text-brand-navy mb-4">Discuss Your Legal Matter</h4>
+                  <p class="text-sm text-gray-600 font-light leading-relaxed mb-6">
                     Connect directly with our specialist legal team regarding ${serviceTitle} to receive a strategic case assessment.
                   </p>
-                  <a href="/#contact" class="block w-full py-3 bg-brand-gold text-brand-navy font-bold text-center text-xs uppercase tracking-widest rounded-sm hover:bg-brand-gold/90 transition-all">
+                  <a href="/#contact" class="block w-full py-3 bg-brand-navy text-white font-bold text-center text-xs uppercase tracking-widest rounded-sm hover:bg-brand-navy/90 transition-all">
                     Schedule Consultation →
                   </a>
                 </div>
@@ -1305,15 +1289,13 @@ async function main() {
         <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
           ${navHtml}
           <main class="pt-24 flex-grow">
-            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-              <div class="absolute inset-0 opacity-20">
-                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
-              </div>
-              <div class="relative z-10 text-center px-6">
-                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">PRACTICE AREAS & CONSULTANCY</div>
-                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
-                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
-                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+            <!-- Services Banner -->
+            <div class="pt-16 pb-12 px-6 lg:px-12 text-center bg-bg-deep border-b border-brand-navy/5">
+              <div class="max-w-4xl mx-auto space-y-4">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold font-bold">PRACTICE AREAS & CONSULTANCY</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-brand-navy">${headingText}</h1>
+                <div class="w-16 h-1 bg-brand-gold mx-auto"></div>
+                <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
               </div>
             </div>
 
@@ -1369,15 +1351,13 @@ async function main() {
         <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
           ${navHtml}
           <main class="pt-24 flex-grow">
-            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-              <div class="absolute inset-0 opacity-20">
-                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
-              </div>
-              <div class="relative z-10 text-center px-6">
-                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">ABOUT RESEN LEGAL</div>
-                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
-                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
-                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+            <!-- About Banner -->
+            <div class="pt-16 pb-12 px-6 lg:px-12 text-center bg-bg-deep border-b border-brand-navy/5">
+              <div class="max-w-4xl mx-auto space-y-4">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold font-bold">ABOUT RESEN LEGAL</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-brand-navy">${headingText}</h1>
+                <div class="w-16 h-1 bg-brand-gold mx-auto"></div>
+                <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
               </div>
             </div>
 
@@ -1445,15 +1425,13 @@ async function main() {
         <div class="min-h-screen bg-bg-deep font-sans antialiased flex flex-col justify-between">
           ${navHtml}
           <main class="pt-24 flex-grow">
-            <div class="relative h-[35vh] min-h-[280px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-              <div class="absolute inset-0 opacity-20">
-                <img src="${page.image}" alt="${headingText}" class="w-full h-full object-cover" />
-              </div>
-              <div class="relative z-10 text-center px-6">
-                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">ATTORNEYS & COUNSEL</div>
-                <h1 class="text-4xl md:text-6xl font-serif text-white mb-4">${headingText}</h1>
-                <div class="w-24 h-1 bg-brand-gold mx-auto mb-4"></div>
-                <p class="text-sm md:text-base text-brand-offwhite/80 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
+            <!-- Team Banner -->
+            <div class="pt-16 pb-12 px-6 lg:px-12 text-center bg-bg-deep border-b border-brand-navy/5">
+              <div class="max-w-4xl mx-auto space-y-4">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold font-bold">ATTORNEYS & COUNSEL</div>
+                <h1 class="text-4xl md:text-6xl font-serif text-brand-navy">${headingText}</h1>
+                <div class="w-16 h-1 bg-brand-gold mx-auto"></div>
+                <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">${page.description}</p>
               </div>
             </div>
 
@@ -1509,23 +1487,17 @@ async function main() {
       // Fallback for private or utility static pages (e.g. resen-gate)
       bodySkeleton = `
         <div class="min-h-screen bg-bg-deep font-sans antialiased">
+          ${navHtml}
           <main class="pt-24">
-            <div class="relative h-[40vh] min-h-[300px] w-full bg-brand-navy flex items-center justify-center overflow-hidden">
-              <div class="absolute inset-0 opacity-20">
-                <img 
-                  src="${page.image}" 
-                  alt="${headingText}" 
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <div class="relative z-10 text-center px-6">
-                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-4 font-bold">
+            <div class="pt-16 pb-12 px-6 lg:px-12 text-center bg-bg-deep border-b border-brand-navy/5">
+              <div class="max-w-4xl mx-auto space-y-4">
+                <div class="text-[10px] uppercase tracking-[0.4em] text-brand-gold font-bold">
                   EXCELLENCE & INTEGRITY
                 </div>
-                <h1 class="text-4xl md:text-6xl font-serif text-white mb-6">
+                <h1 class="text-4xl md:text-6xl font-serif text-brand-navy">
                   ${headingText}
                 </h1>
-                <div class="w-24 h-1 bg-brand-gold mx-auto"></div>
+                <div class="w-16 h-1 bg-brand-gold mx-auto"></div>
               </div>
             </div>
             <div class="max-w-4xl mx-auto px-6 py-16 text-center">
@@ -1534,6 +1506,7 @@ async function main() {
               </p>
             </div>
           </main>
+          ${footerHtml}
         </div>
       `;
     }
