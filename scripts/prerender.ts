@@ -219,18 +219,20 @@ async function main() {
 
   // Reusable semantic Header Navigation and Footer for prerendered pages
   const navHtml = `
-    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-navy/95 text-white backdrop-blur-md border-b border-brand-gold/15">
-      <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 text-white no-underline">
-          <img src="https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png" alt="Resen Legal" class="w-8 h-8 object-contain" />
-          <span class="font-serif text-lg tracking-wider font-bold">RESEN LEGAL</span>
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md py-4 border-b border-gray-100 shadow-sm transition-all duration-300">
+      <div class="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 group shrink-0 no-underline">
+          <img src="https://res.cloudinary.com/dlrsifk2y/image/upload/v1778684376/favicon_yatsiz.png" alt="Resen Legal Logo" class="w-8 h-8 md:w-9 md:h-9 object-contain" />
+          <span class="text-xl font-serif font-bold tracking-tight text-brand-navy">
+            RESEN <span class="font-normal text-brand-gold">LEGAL</span>
+          </span>
         </a>
-        <nav class="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium text-brand-offwhite/80">
+        <nav class="hidden md:flex items-center gap-8 text-xs uppercase tracking-widest font-medium text-brand-navy/80">
           <a href="/services/" class="hover:text-brand-gold transition-colors">Services</a>
           <a href="/about/" class="hover:text-brand-gold transition-colors">About</a>
           <a href="/team/" class="hover:text-brand-gold transition-colors">Team</a>
           <a href="/blog/" class="hover:text-brand-gold transition-colors">Blog</a>
-          <a href="/#contact" class="px-5 py-2.5 bg-brand-gold text-brand-navy font-bold hover:bg-brand-gold/90 transition-all rounded-sm">Contact</a>
+          <a href="/#contact" class="hover:text-brand-gold transition-colors">Contact</a>
         </nav>
       </div>
     </header>
