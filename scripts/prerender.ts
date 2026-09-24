@@ -102,7 +102,7 @@ function formatSitemapDate(dateVal: any): string {
 
 function isPostPublishedPrerender(post: any): boolean {
   if (!post) return false;
-  if (post.status === "draft") return false;
+  if (post.status === "draft" || post.status === "archived" || post.status === "private") return false;
   if (post.status === "scheduled") {
     if (!post.publishAt) return false;
     const pubTime = new Date(post.publishAt).getTime();
@@ -306,6 +306,9 @@ async function main() {
     .filter((post) => isPostPublishedPrerender(post))
     .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   
+  const successfullyGeneratedBlogPosts: any[] = [];
+  const generatedBlogDetailSlugs = new Set<string>();
+
   for (const post of publishedPosts) {
     const slug = getPostSlug(post);
     if (!slug || slug === "[slug]") continue;
@@ -538,8 +541,14 @@ async function main() {
     if (!fs.existsSync(postDir)) {
       fs.mkdirSync(postDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(postDir, "index.html"), html, "utf-8");
+    const detailFilePath = path.join(postDir, "index.html");
+    fs.writeFileSync(detailFilePath, html, "utf-8");
+    if (fs.existsSync(detailFilePath)) {
+      successfullyGeneratedBlogPosts.push(post);
+      generatedBlogDetailSlugs.add(slug);
+    }
   }
+  console.log(`Successfully generated ${successfullyGeneratedBlogPosts.length} blog detail pages.`);
 
   // Prerender Services
   console.log("Prerendering service detail pages...");
@@ -1322,14 +1331,18 @@ async function main() {
               </div>
             </div>
 
-            <!-- Recent Articles Grid -->
+            <!-- Static Crawlable Blog Archive Section -->
             <section class="max-w-7xl mx-auto px-6 lg:px-12 py-16">
-              <div class="flex items-center justify-between mb-10">
-                <h2 class="text-2xl font-serif text-brand-navy">Recent Legal Commentary</h2>
-                <div class="text-xs uppercase tracking-wider text-gray-500">${publishedPosts.length} Published Articles</div>
+              <div class="flex items-center justify-between mb-10 pb-4 border-b border-brand-navy/10">
+                <div>
+                  <div class="text-[10px] uppercase tracking-[0.25em] text-brand-gold font-bold mb-1">LEGAL INSIGHTS ARCHIVE</div>
+                  <h2 class="text-2xl sm:text-3xl font-serif text-brand-navy font-bold">All Published Legal Commentary</h2>
+                </div>
+                <div class="text-xs uppercase tracking-wider font-semibold text-gray-500">${successfullyGeneratedBlogPosts.length} Published Articles</div>
               </div>
+
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                ${publishedPosts.slice(0, 9).map((p: any) => {
+                ${successfullyGeneratedBlogPosts.map((p: any) => {
                   const pSlug = getPostSlug(p);
                   const pTitle = getServerTranslation(p.title, 'en', p.language);
                   const pCat = getPrerenderCategory(p.category, 'en');
@@ -1342,7 +1355,7 @@ async function main() {
                           <span class="text-brand-gold text-[10px] uppercase tracking-wider font-bold">${pCat}</span>
                           <time class="text-gray-400 text-xs">${pDate}</time>
                         </div>
-                        <h3 class="text-xl font-serif text-brand-navy mb-3">
+                        <h3 class="text-xl font-serif text-brand-navy mb-3 leading-snug">
                           <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold transition-colors">${pTitle}</a>
                         </h3>
                         <p class="text-gray-500 font-light text-xs line-clamp-3 mb-6">${pExcerpt}</p>
@@ -1353,33 +1366,6 @@ async function main() {
                     </article>
                   `;
                 }).join('')}
-              </div>
-            </section>
-
-            <!-- Complete Semantic Article Index -->
-            <section class="py-16 bg-brand-offwhite border-t border-brand-navy/10">
-              <div class="max-w-7xl mx-auto px-6 lg:px-12">
-                <div class="mb-8">
-                  <div class="text-xs uppercase tracking-[0.2em] font-bold text-brand-gold mb-2">Comprehensive Index</div>
-                  <h2 class="text-2xl font-serif text-brand-navy">All Published Insights & Publications</h2>
-                </div>
-                <div class="bg-white rounded-sm border border-brand-navy/5 shadow-sm divide-y divide-brand-navy/5">
-                  ${publishedPosts.map((p: any) => {
-                    const pSlug = getPostSlug(p);
-                    const pTitle = getServerTranslation(p.title, 'en', p.language);
-                    const pCat = getPrerenderCategory(p.category, 'en');
-                    const pDate = p.date || '';
-                    return `
-                      <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm hover:bg-brand-offwhite/30 transition-colors">
-                        <div class="flex items-center gap-3">
-                          <span class="text-[10px] uppercase font-bold text-brand-gold bg-brand-navy/5 px-2.5 py-1 rounded-sm shrink-0">${pCat}</span>
-                          <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold font-medium transition-colors">${pTitle}</a>
-                        </div>
-                        <time class="text-xs text-gray-500 shrink-0 font-light">${pDate}</time>
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
               </div>
             </section>
           </main>
@@ -1619,7 +1605,49 @@ async function main() {
     if (!fs.existsSync(pageDir)) {
       fs.mkdirSync(pageDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(pageDir, "index.html"), html, "utf-8");
+    const pageIndexFile = path.join(pageDir, "index.html");
+    fs.writeFileSync(pageIndexFile, html, "utf-8");
+
+    // Build-time verification for /blog/ static archive indexability
+    if (page.path === "blog") {
+      const blogDistContent = fs.readFileSync(pageIndexFile, "utf-8");
+      const blogLinkRegex = /href="\/blog\/([a-zA-Z0-9_-]+)\/"/g;
+      const matchedSlugs = new Set<string>();
+      let match;
+      while ((match = blogLinkRegex.exec(blogDistContent)) !== null) {
+        matchedSlugs.add(match[1]);
+      }
+
+      console.log("\n==================================================");
+      console.log("🔍 Blog Prerender Indexability Verification");
+      console.log("==================================================");
+      console.log(`• Published posts eligible for prerender:    ${publishedPosts.length}`);
+      console.log(`• Blog detail pages successfully written:     ${successfullyGeneratedBlogPosts.length}`);
+      console.log(`• Unique static blog links on /blog/ page:    ${matchedSlugs.size}`);
+
+      const missingDetailFiles: string[] = [];
+      matchedSlugs.forEach((slug) => {
+        const detailFilePath = path.join(distPath, "blog", slug, "index.html");
+        if (!fs.existsSync(detailFilePath)) {
+          missingDetailFiles.push(slug);
+        }
+      });
+
+      if (matchedSlugs.size !== successfullyGeneratedBlogPosts.length) {
+        const diffMsg = `Mismatch detected: Expected ${successfullyGeneratedBlogPosts.length} static blog links in dist/blog/index.html, but found ${matchedSlugs.size}.`;
+        console.error(`❌ Build Verification Error: ${diffMsg}`);
+        throw new Error(diffMsg);
+      }
+
+      if (missingDetailFiles.length > 0) {
+        const missingMsg = `Missing detail HTML files for linked slugs: ${missingDetailFiles.join(", ")}`;
+        console.error(`❌ Build Verification Error: ${missingMsg}`);
+        throw new Error(missingMsg);
+      }
+
+      console.log("✓ Verification Passed: All published posts have crawlable static links on /blog/ and valid detail files.");
+      console.log("==================================================\n");
+    }
   }
 
   // Generate sitemap.xml
