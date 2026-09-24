@@ -172,9 +172,9 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           title: '2. Citizenship Revocation & Annulment Defense (Council of State Jurisprudence)',
           subtitle: 'The Strategic Divide between Law No. 5901 Article 31 and Article 40',
           paragraphs: [
-            'Recent administrative audits targeting retroactive citizenship grants have led to widespread revocation proceedings. Law No. 5901 Article 31 governs the annulment of citizenship acquired through fraudulent disclosures. Conversely, Article 40 governs rescissions resulting from administrative misapplication without foreign culpability.',
-            'According to settled Council of State (Danıştay) precedents, revocation mandates concrete, verifiable, and legally substantiated findings. Vague intelligence notations or minor valuation currency variances do not constitute legitimate grounds for revocation. Furthermore, actions against an investor cannot automatically compromise spouses or children; each claim must be defended individually.',
-            'Resen Legal initiates urgent annulment actions before the competent Administrative Courts in Ankara against cancellation decrees, requesting immediate Stays of Execution. Read our authoritative brief: "Annulment & Revocation of Granted Turkish Citizenship: Court Precedents".'
+            'Recent administrative audits targeting retroactive citizenship grants have led to widespread revocation proceedings. Law No. 5901 Article 31 governs the annulment of citizenship acquired through fraudulent disclosures. Article 40 of Law No. 5901 concerns the withdrawal of citizenship acquisition or loss decisions where it is later understood that the legal conditions were not fulfilled or that the decision was issued repeatedly. Each case requires a separate assessment of the original legal basis, administrative file, and the reason relied upon by the authority.',
+            'According to settled Council of State (Danıştay) precedents, revocation mandates concrete, verifiable, and legally substantiated findings. Vague intelligence notations or minor valuation currency variances do not constitute legitimate grounds for revocation. The effect of a citizenship cancellation or annulment decision on spouses and children depends on whether their citizenship was acquired independently or derivatively through the principal applicant. The legal position of each family member must therefore be assessed separately under Law No. 5901, including Article 32.',
+            'Resen Legal formulates tailored legal strategies and initiates urgent annulment actions and stay of execution requests against cancellation decrees. Actions are filed before the competent administrative court, often Ankara depending on the issuing authority and the administrative act in question, subject to current legislation and administrative practice. Read our authoritative brief: "Annulment & Revocation of Granted Turkish Citizenship: Court Precedents".'
           ],
           bulletPoints: [
             {
@@ -192,7 +192,7 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           title: '3. Residence Permit Architecture, Extension Protocols & Injunctions',
           subtitle: 'Law No. 6458 (LFIP) Short-Term, Real Estate, Tourism, and Extension Compliance',
           paragraphs: [
-            'Residence permits are categorized into real estate ownership, tourism, business connectivity, family reunification, higher education, and humanitarian relief. With recent regulatory hurdles—including the USD 200,000 real estate valuation floor and closed neighborhood quotas—applications require proactive dossier design before filing with the Migration Directorate (PMM).',
+            'Residence permits are categorized into real estate ownership, tourism, business connectivity, family reunification, higher education, and humanitarian relief. With recent regulatory hurdles, including the USD 200,000 real estate valuation floor and closed neighborhood quotas, applications require proactive dossier design before filing with the Migration Directorate (PMM).',
             'For residence permit extensions, applications must be submitted within 60 days prior to permit expiration. Applicants must also secure a registered National Electronic Notification System (UETS) address and establish verifiable residency within the Civil Registry’s Spatial Address Registration System (MAKS).',
             'Upon rejection, foreigners receive a notice compelling departure within 10 days. Lodging an annulment lawsuit in the Administrative Court with a Stay of Execution request within 60 days legally protects residents from deportation. Consult our guides: "Turkish Residence Permits: Strategic Overview" and "How to Renew a Turkish Residence Permit".'
           ]
@@ -202,13 +202,13 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           subtitle: 'Managing G-87, Ç-114, Ç-141 Restriction Codes and Removal Centers (GGM)',
           paragraphs: [
             'Deportation orders (LFIP Art. 54) and administrative detention decisions (LFIP Art. 57) severely curtail physical freedom. Resen Legal delivers immediate emergency interventions across Removal Centers (Geri Gönderme Merkezleri - GGM) including Çatalca, Tuzla, and facilities nationwide.',
-            'Filing an annulment lawsuit before the Administrative Court within **7 calendar days** of deportation notification automatically stays removal proceedings by force of law until judicial resolution. For detention, we petition the Peace Criminal Judicature for release on supervisory reporting measures.',
-            'Restriction codes (terror suspicion G-87, public order Ç-114, judicial inquiry Ç-141, fraudulent documentation Ç-113) are challenged through specialized lawsuits before the Ankara Administrative Courts. Review our publication: "Deportation Decisions & Administrative Detention in Turkey".'
+            'Filing an annulment lawsuit before the competent administrative court within **7 calendar days** of deportation notification generally suspends removal proceedings by operation of law pending judicial resolution, subject to statutory criteria under LFIP Art. 53. For detention, we petition the competent Peace Criminal Judicature for release on supervisory reporting measures based on case-specific evaluation.',
+            'Restriction codes (such as terror suspicion G-87, public order Ç-114, judicial inquiry Ç-141, and document irregularities Ç-113) are challenged through specialized annulment lawsuits before the competent administrative court, frequently Ankara depending on the issuing authority and administrative record. Review our publication: "Deportation Decisions & Administrative Detention in Turkey".'
           ],
           calloutBox: {
             type: 'warning',
             title: 'Critical 7-Day Deadline',
-            content: 'Deportation appeals must be filed within 7 days—NOT the standard 60-day window. Missing this timeframe renders deportation enforceable immediately.'
+            content: 'Deportation appeals must be filed within 7 days, unlike the standard 60-day window. Missing this timeframe renders deportation enforceable immediately.'
           }
         },
         {
@@ -225,7 +225,7 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           subtitle: 'Naturalization via Paternity/Maternity Registration under Law No. 5901 Art. 7',
           paragraphs: [
             'Individuals born to a Turkish mother or father retain the statutory right to establish citizenship retroactively from birth, including determinations finalized past 18 years of age. Filings require forensic DNA documentation, sworn archival records, and civil registry rectification lawsuits. Read our guide: "Registration of Turkish Citizenship by Paternity After Age 18".',
-            'For corporate personnel and shareholders, we coordinate Ministry of Labor and Social Security work permits under Law No. 6735, auditing the 5 Turkish employee quota, statutory capitalization thresholds, and sector-specific exemptions. A valid work permit legally supersedes the necessity of a separate residence permit.'
+            'For corporate personnel and shareholders, we coordinate Ministry of Labor and Social Security work permits under Law No. 6735, evaluating statutory capitalization thresholds, employee evaluation criteria, and applicable exemption grounds based on case-specific assessment. A valid work permit legally supersedes the necessity of a separate residence permit.'
           ]
         }
       ]
@@ -473,7 +473,7 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           subtitle: 'AIMA Integration, Consular Frameworks, and the 5-Year Path to EU Citizenship',
           paragraphs: [
             'Portugal remains a premier gateway for cross-border investors due to its clear statutory route toward European citizenship within 5 years. Navigating this successfully mandates meticulous synchronization between the Portuguese Consulates abroad and AIMA (Agency for Integration, Migration and Asylum), the Tax Authority (Finanças), and banking institutions within Portugal.',
-            'Our cross-border practice handles NIF fiscal registrations, corporate/personal banking establishments, compliant lease acquisitions, and biometric representation across Lisbon, Porto, and Algarve. Depending on the income stream—corporate dividends, real estate lease yields, intellectual property royalties, remote tech salaries, or venture capital—we craft tailored evidentiary portfolios that satisfy consular thresholds on first submission.',
+            'Our cross-border practice handles NIF fiscal registrations, corporate/personal banking establishments, compliant lease acquisitions, and biometric representation across Lisbon, Porto, and Algarve. Depending on the income stream (such as corporate dividends, real estate lease yields, intellectual property royalties, remote tech salaries, or venture capital), we craft tailored evidentiary portfolios that satisfy consular thresholds on first submission.',
             'Crucially, under recent Portuguese nationality law revisions, the statutory 5-year waiting period for European citizenship starts calculating from the exact date the residency visa application was filed, rather than the delayed issuance date of the physical card. This prevents administrative appointment backlogs from prejudicing foreign investors.',
             'Consult our exhaustive guides for exact evidentiary requirements and consular protocols: "Portugal D7 Passive Income & Retirement Pathway", "Portugal D8 Digital Nomad Visa Compliance", and "Portugal D2 Visa: Entrepreneurial Incorporation".'
           ],
@@ -801,9 +801,9 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           title: '2. Foreign Real Estate Acquisition & Consular Power of Attorney Protocols',
           subtitle: 'Law No. 2644 Art. 35, Foreign Exchange Certificates (DAB) & Statutory Limits',
           paragraphs: [
-            'Foreign natural persons may acquire Turkish real estate pursuant to Article 35 of the Land Registry Law No. 2644. Crucial restrictions persist, however: properties must not overlap military forbidden zones, and foreign holdings cannot exceed 10% of private land per municipal district or 30 hectares nationally per individual.',
-            'For overseas buyers completing purchases remotely, Powers of Attorney (PoA) drafted at Turkish Consulates or notarized with Apostille stamps abroad must contain explicit statutory authority, physical photographs, and precise parcel identifiers. We also ensure full compliance with Central Bank foreign exchange sales certificates (DAB).',
-            'Annotating preliminary promise-to-sell deeds at the title registry creates statutory in rem protection, preventing the vendor from conveying title to conflicting third-party buyers. Explore our guides: "Executing Real Estate Purchases in Turkey via Power of Attorney" and "Cross-Border Recognition of Foreign Powers of Attorney".'
+            'Foreign natural persons may acquire Turkish real estate pursuant to Article 35 of the Land Registry Law No. 2644. Foreign acquisition remains subject to statutory restrictions, including district and national surface-area limits, security-zone controls, and country/person/region-based restrictions that may be imposed by the Presidency.',
+            'For overseas buyers completing purchases remotely, Powers of Attorney (PoA) drafted at Turkish Consulates or notarized with Apostille stamps abroad must contain explicit statutory authority, physical photographs, and precise parcel identifiers. We also ensure full compliance with Central Bank foreign exchange sales certificates (DAB) under applicable central bank circulars.',
+            'Annotating preliminary promise-to-sell deeds at the title registry creates statutory in rem protection, preventing the vendor from conveying title to conflicting third-party buyers, subject to case-specific assessment and statutory registration requirements. Explore our guides: "Executing Real Estate Purchases in Turkey via Power of Attorney" and "Cross-Border Recognition of Foreign Powers of Attorney".'
           ],
           calloutBox: {
             type: 'advisory',
@@ -823,14 +823,14 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           title: '4. Tenancy Disputes: Rent Determination & Eviction Litigation',
           subtitle: 'Navigating Turkish Code of Obligations Arts. 344 & 350-352',
           paragraphs: [
-            'Inflationary shifts have spurred widespread tenancy disputes across commercial and residential leases. Under Article 344/3 of Law No. 6098, leases exceeding 5 years are subject to judicial "Rent Determination Lawsuits" (Kira Tespit Davası) where judges realign rent with prevailing market comparables.',
-            'Our litigation team monitors Court of Cassation (Yargıtay) precedents on lease claims, ensuring prompt mediation filings under Law No. 7445 (a mandatory procedural prerequisite). We also litigate written eviction commitments (Tahliye Taahhütnamesi), personal dwelling necessity evictions (Art. 350), and the 10-year statutory lease termination rule.',
-            'Mandatory pre-litigation mediation instituted under Law No. 7445 offers a binding forum to establish amicable settlements. An executed mediation accord constitutes an enforceable court decree, bypassing prolonged judicial calendars. See our analysis: "Rent Determination Lawsuits under Turkish Tenancy Jurisprudence".'
+            'Inflationary shifts have spurred widespread tenancy disputes across commercial and residential leases. Under Article 344/3 of Law No. 6098, leases exceeding 5 years are subject to judicial "Rent Determination Lawsuits" (Kira Tespit Davası) where courts evaluate prevailing market comparables in light of statutory criteria and equitable considerations.',
+            'Our litigation team monitors Court of Cassation (Yargıtay) precedents on lease claims, developing case-specific legal strategies. We also litigate written eviction commitments (Tahliye Taahhütnamesi), personal dwelling necessity evictions (Art. 350), and the 10-year statutory lease extension rule.',
+            'Most lease-related disputes are subject to mandatory mediation before litigation under Law No. 7445, except for eviction proceedings pursued through the specific non-judicial enforcement route under the Enforcement and Bankruptcy Law. An executed mediation accord constitutes an enforceable title equivalent to a court decree, bypassing prolonged judicial calendars. See our analysis: "Rent Determination Lawsuits under Turkish Tenancy Jurisprudence".'
           ],
           bulletPoints: [
             {
               title: 'Mandatory Mediation (Law No. 7445)',
-              description: 'Tenancy disputes cannot be filed in court without an initial formal mediation protocol. We represent landlords and tenants in sessions.'
+              description: 'Most lease-related disputes require pre-litigation mediation, with statutory exceptions such as non-judicial eviction proceedings under the Enforcement and Bankruptcy Law.'
             },
             {
               title: 'Dwelling Necessity Evictions (Art. 350)',
@@ -844,10 +844,10 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
         },
         {
           title: '5. Urban Transformation Law & Construction Agreements in Return for Land Share',
-          subtitle: 'Law No. 6306 Legislative Reforms, Simple Majority Rules (%50+1) & Contractor Default',
+          subtitle: 'Law No. 6306 Legislative Reforms, Simple Majority Decision Framework & Contractor Default',
           paragraphs: [
-            'Recent amendments to Law No. 6306 governing at-risk buildings have reduced the required owner decision threshold from 2/3 to a **simple majority (50% + 1 of land shares)**. While accelerating reconstruction, this raises significant challenges for minority owners seeking to safeguard equitable title valuation.',
-            'We negotiate Construction Agreements in Return for Land Share (Kat Karşılığı İnşaat Sözleşmeleri), structuring completion guarantees, delayed delivery penalty clauses, share correction lawsuits, and title annulment actions against contractor insolvency.'
+            'Under Law No. 6306, certain redevelopment decisions may be adopted by a simple majority calculated according to ownership shares / land share ratios, rather than unanimity. While accelerating urban regeneration projects, this underscores the necessity of a case-specific assessment to protect equitable property valuations and minority owners\' statutory rights.',
+            'We negotiate Construction Agreements in Return for Land Share (Kat Karşılığı İnşaat Sözleşmeleri), structuring completion guarantees, delayed delivery penalty clauses, share correction lawsuits, and title remedies against contractor insolvency under current legislation and administrative practice.'
           ]
         },
         {
@@ -1086,18 +1086,18 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           title: '1. Entity Formation, Capital Structuring & Foreign Investor Regulation',
           subtitle: 'Joint Stock Company (A.Ş.) vs. Limited Liability Company (Ltd. Şti.) Architecture',
           paragraphs: [
-            'Selecting an operating entity in Turkey—principally between an Anonim Şirket (A.Ş.) and a Limited Şirket (Ltd. Şti.)—determines shareholder tax exposure, personal liability for sovereign public debts, and capital transfer agility. Under Foreign Direct Investment Law No. 4875, foreign investors enjoy full national treatment, enabling 100% foreign-owned single-shareholder corporate structures.',
-            'Under the Turkish Commercial Code (TCC), A.Ş. shareholders are insulated from corporate liabilities beyond their committed share subscription. Conversely, Ltd. partners remain personally, jointly, and severally liable for unpaid sovereign tax and social security dues. Furthermore, share transfers executed in an A.Ş. after holding stock certificates for two full years are 100% exempt from personal capital gains tax.',
-            'Our corporate department navigates end-to-end setups: Central Registry (MERSİS) filings, tailored Articles of Association embodying corporate governance standards, Competition Authority statutory levies, and sworn legalization of foreign corporate parent entities. Read our guide: "Foreign Investors Guide: Company Formation & Investment Incentives in Turkey".'
+            'Selecting an operating entity in Turkey, principally between an Anonim Şirket (A.Ş.) and a Limited Şirket (Ltd. Şti.), determines shareholder tax exposure, public debt liability mechanisms, and capital transfer agility. Under Foreign Direct Investment Law No. 4875, foreign investors enjoy full national treatment, enabling 100% foreign-owned single-shareholder corporate structures.',
+            'Limited company shareholders are generally not liable for ordinary company debts under the Turkish Commercial Code. However, under Law No. 6183, they may be directly liable for public receivables that cannot be collected from the company, limited to their capital share ratio. Joint and several liability may arise in specific share-transfer or period-based public debt scenarios. Share transfers in joint stock companies may offer significant tax advantages, particularly where share certificates of a fully liable Turkish corporation are held for more than two years, subject to the conditions of the Income Tax Law and the taxpayer’s status.',
+            'Our corporate department develops case-specific legal strategies for end-to-end setups: Central Registry (MERSİS) filings, tailored Articles of Association embodying corporate governance standards, Competition Authority statutory levies, and sworn legalization of foreign corporate parent entities. Read our guide: "Foreign Investors Guide: Company Formation & Investment Incentives in Turkey".'
           ],
           bulletPoints: [
             {
               title: 'Joint Stock Company (A.Ş.) Merits',
-              description: 'Full capital gains tax exemption on share transfers executed after holding stock certificates for two full years; expedited share transfers; personal immunity from corporate public debts.'
+              description: 'Potential capital gains tax advantages on share transfers where share certificates are held for more than two years under Income Tax Law criteria; flexible share transfer mechanics; limitation of shareholder liability for ordinary corporate debts.'
             },
             {
-              title: 'Limited Company (Ltd.) Parameters',
-              description: 'Accessible minimum capitalization but requiring mandatory notarial authentication and Trade Registry publication for every share transfer; joint liability for corporate tax liabilities.'
+              title: 'Limited Company (Ltd. Şti.) Parameters',
+              description: 'Accessible minimum capitalization; notarial authentication and Trade Registry registration required for share transfers; direct liability for uncollectible public debts limited to capital share ratios under Law No. 6183.'
             },
             {
               title: 'Liaison & Representative Offices',
@@ -1119,12 +1119,12 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           paragraphs: [
             'While registered Articles of Association govern public-facing statutory affairs, the private Shareholder Agreement (SHA) dictates actual commercial power distribution, veto thresholds, and exit covenants. Under Turkish corporate law, an expertly crafted SHA establishes legally enforceable transfer restrictions and operational covenants.',
             'Our lawyers structure robust Tag-Along minority protection clauses, Drag-Along liquidity enforcement rights, pre-emptive option rights, and Deadlock resolution mechanisms (e.g., Russian Roulette, Texas Shootout, or valuation-based call options).',
-            'Confidential governance stipulations—such as liquidated damages covenants, non-solicitation undertakings, and international arbitration provisions under the Istanbul Arbitration Centre (ISTAC) or London Court of International Arbitration (LCIA)—are preserved inside the SHA.'
+            'Confidential governance stipulations, including liquidated damages covenants, non-solicitation undertakings, and international arbitration provisions under the Istanbul Arbitration Centre (ISTAC) or London Court of International Arbitration (LCIA), are preserved inside the SHA.'
           ],
           calloutBox: {
             type: 'strategy',
             title: 'Super-Majority Governance Thresholds',
-            content: 'Strategic operational decisions—such as capital restructuring, significant indebtedness, real estate conveyancing, and C-level executive removals—must require super-majority voting quotas coupled with arbitration clauses.'
+            content: 'Strategic operational decisions, including capital restructuring, significant indebtedness, real estate conveyancing, and C-level executive removals, must require super-majority voting quotas coupled with arbitration clauses.'
           }
         },
         {
@@ -1153,10 +1153,10 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
         },
         {
           title: '7. Work Permits for Foreign Corporate Shareholders & Executive Personnel',
-          subtitle: 'International Labor Force Law, 5 Turkish Citizen Quotas & Statutory Exemptions',
+          subtitle: 'International Labor Force Law, Ministry Evaluation Criteria & Exemption Frameworks',
           paragraphs: [
-            'Foreign shareholders, founders, and managing directors must secure a valid work permit from the Ministry of Labor and Social Security to legally execute corporate agreements and maintain active management within Turkey.',
-            'While standard regulations demand employing 5 Turkish citizens per foreign hire, statutory exemptions apply to capital shareholders satisfying statutory capital thresholds and direct foreign investors. Our corporate department oversees electronic applications through Ministry portals to secure swift approvals. Consult: "Work Permits for Foreign Shareholders & Key Personnel in Turkey".'
+            'Foreign shareholders and directors must be assessed according to their role and residence status. A limited company shareholder-manager or a shareholder board member of a joint stock company may require a work permit to actively work in Turkey, while non-resident board members of joint stock companies and non-manager shareholders may fall within work permit exemption categories.',
+            'As a general evaluation criterion, work permit applications often require at least five Turkish citizen employees for each foreign employee. However, exemptions and sector-specific criteria may apply depending on investment quality, turnover, technology sector status, the foreigner’s prior lawful stay in Turkey, and Ministry practice. Our corporate team formulates the appropriate legal strategy and coordinates applications through competent authority portals, subject to current legislation and administrative practice. Consult: "Work Permits for Foreign Shareholders & Key Personnel in Turkey".'
           ]
         },
         {
@@ -1164,7 +1164,7 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
           subtitle: 'Capital Impairment Measures (TCC Art. 376), Annulment Lawsuits & ISTAC Arbitration',
           paragraphs: [
             'Fluctuations in foreign exchange parity frequently precipitate equity deficits where capital and statutory legal reserves become impaired under Article 376 of the TCC (Technical Insolvency). In such instances, executive boards must convene extraordinary general assemblies to execute capital replenishment or debt-to-equity debt conversions.',
-            'Resen Legal counsels corporate clients through equity restorations, represents shareholders in General Assembly decision annulment actions (TCC Art. 445), and litigates cross-border commercial claims before the Istanbul Arbitration Centre (ISTAC), LCIA, and ICC tribunals.'
+            'Resen Legal counsels corporate clients through equity restorations, represents shareholders in General Assembly decision annulment actions (TCC Art. 445), and represents parties in cross-border commercial disputes before the Istanbul Arbitration Centre (ISTAC), LCIA, and ICC tribunals, tailoring legal strategies to jurisdictional requirements.'
           ]
         }
       ]
@@ -1249,7 +1249,7 @@ export const PRIORITY_SERVICES_DETAILED_CONTENT: Record<string, DetailedServiceC
         },
         {
           question: 'What is the primary operational advantage of an A.Ş. over an Ltd. in Turkey?',
-          answer: 'A Joint Stock Company (A.Ş.) grants complete immunity for shareholders against public fiscal/tax debts (which remain bounded to the corporate entity), alongside a 100% capital gains tax exemption on share transfers held over 2 years.'
+          answer: 'In a Joint Stock Company (A.Ş.), shareholder liability for ordinary corporate obligations is limited to subscribed share capital under the TCC, and public debts are pursued against the legal entity and its legal representatives under Law No. 6183. In addition, share transfers may provide capital gains tax relief where share certificates are held for more than two years, subject to statutory conditions. In a Limited Company, shareholders may be directly liable for uncollectible public debts in proportion to their capital share ratio under Law No. 6183.'
         },
         {
           question: 'What distinguishes a Shareholders Agreement (SHA) from Articles of Association?',
