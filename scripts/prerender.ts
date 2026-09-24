@@ -764,8 +764,15 @@ async function main() {
 
                     ${priorityDetail.relatedArticles.en.length > 0 ? `
                       <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(6, 78, 59, 0.1);">
-                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #BC9C53; font-weight: bold; margin-bottom: 0.5rem;">CONNECTED RESEARCH & GUIDES</div>
-                        <h3 style="font-size: 1.5rem; font-family: serif; color: #064E3B; margin: 0 0 1.5rem 0;">Specialized Legal Publications for this Practice Area</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                          <div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #BC9C53; font-weight: bold; margin-bottom: 0.25rem;">CONNECTED RESEARCH & GUIDES</div>
+                            <h3 style="font-size: 1.5rem; font-family: serif; color: #064E3B; margin: 0;">Specialized Legal Publications for this Practice Area</h3>
+                          </div>
+                          <a href="/blog/" style="display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; color: #BC9C53; text-decoration: none; margin-top: 0.125rem; white-space: nowrap;">
+                            <span>All Articles</span> →
+                          </a>
+                        </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
                           ${priorityDetail.relatedArticles.en.map((art: any) => `
                             <div style="padding: 1.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 2px;">

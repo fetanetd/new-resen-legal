@@ -234,7 +234,7 @@ export default function ServiceDetail() {
                     {/* Curated Service-Specific Related Research Articles */}
                     {priorityDetail.relatedArticles[lang].length > 0 && (
                       <div className="mt-14 pt-10 border-t border-brand-navy/10">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-start justify-between mb-6">
                           <div>
                             <div className="text-brand-gold text-[10px] uppercase tracking-widest font-extrabold mb-1">
                               {lang === 'tr' ? 'HUKUKİ REHBERLER & MAKALELER' : 'CONNECTED LEGAL RESEARCH'}
@@ -245,7 +245,7 @@ export default function ServiceDetail() {
                           </div>
                           <Link 
                             to="/blog/"
-                            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-gold hover:text-brand-navy transition-colors"
+                            className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-gold hover:text-brand-navy transition-colors shrink-0 mt-0.5"
                           >
                             <span>{lang === 'tr' ? 'Tüm Makaleler' : 'All Articles'}</span>
                             <ArrowRight className="w-3.5 h-3.5" />
