@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { BLOG_POSTS as MOCK_BLOG, SERVICES as MOCK_SERVICES, TEAM as MOCK_TEAM } from "../src/constants/mockData";
+import { PRIORITY_SERVICES_DETAILED_CONTENT } from "../src/constants/serviceDetailedContent";
 
 dotenv.config();
 
@@ -548,10 +549,15 @@ async function main() {
     if (!serviceId) continue;
     
     let html = htmlTemplate;
+    const priorityDetail = PRIORITY_SERVICES_DETAILED_CONTENT[serviceId] || null;
     const serviceTitle = getServerTranslation(service.title, "en");
-    const serviceDescription = getServerTranslation(service.description, "en");
+    const serviceDescription = priorityDetail 
+      ? priorityDetail.leadSummary.en.slice(0, 160) 
+      : getServerTranslation(service.description, "en");
     const serviceCanonical = `https://resenlegal.com/service/${serviceId}/`;
-    const serviceKeywords = `${serviceTitle}, legal services, expert counsel, Resen Legal, legal consultancy`;
+    const serviceKeywords = priorityDetail 
+      ? `${serviceTitle}, ${priorityDetail.metaKeywords.join(', ')}`
+      : `${serviceTitle}, legal services, expert counsel, Resen Legal, legal consultancy`;
     const serviceImage = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80";
     
     const siteName = "Resen Legal & Consultancy";
@@ -712,13 +718,85 @@ async function main() {
                   ${serviceTitle}
                 </h1>
                 
-                <p class="text-xl text-gray-700 font-light leading-relaxed mb-8">
-                  ${serviceDescription}
-                </p>
+                ${priorityDetail ? `
+                  <div style="margin-bottom: 2.5rem; padding: 2rem; background: #ffffff; border-left: 4px solid #BC9C53; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <p style="font-size: 1.15rem; font-family: serif; color: #064E3B; line-height: 1.7; margin: 0; font-style: italic;">
+                      ${priorityDetail.leadSummary.en}
+                    </p>
+                  </div>
+                ` : `
+                  <p class="text-xl text-gray-700 font-light leading-relaxed mb-8">
+                    ${serviceDescription}
+                  </p>
+                `}
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-8">
                   ${bulletsHtml}
                 </div>
+
+                ${priorityDetail ? `
+                  <div style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 2rem;">
+                    ${priorityDetail.sections.en.map((sec: any) => `
+                      <section style="background: #ffffff; padding: 2.25rem; border: 1px solid rgba(6, 78, 59, 0.08); border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <h2 style="font-size: 1.75rem; font-family: serif; color: #064E3B; margin: 0 0 0.5rem 0; font-weight: bold;">${sec.title}</h2>
+                        ${sec.subtitle ? `<div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #BC9C53; font-weight: 600; margin-bottom: 1.25rem;">${sec.subtitle}</div>` : ""}
+                        <div style="font-size: 1rem; line-height: 1.8; color: #334155;">
+                          ${sec.paragraphs.map((p: string) => `<p style="margin-bottom: 1rem;">${p}</p>`).join("")}
+                        </div>
+                        ${sec.calloutBox ? `
+                          <div style="margin-top: 1.5rem; padding: 1.25rem; background: #faf9f6; border-left: 3.5px solid #BC9C53; border-radius: 2px;">
+                            <strong style="display: block; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: #064E3B; margin-bottom: 0.5rem;">${sec.calloutBox.title}</strong>
+                            <p style="font-size: 0.9rem; line-height: 1.6; color: #475569; margin: 0;">${sec.calloutBox.content}</p>
+                          </div>
+                        ` : ""}
+                        ${sec.bulletPoints && sec.bulletPoints.length > 0 ? `
+                          <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${sec.bulletPoints.map((bp: any) => `
+                              <div style="padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 2px;">
+                                <strong style="color: #064E3B; font-size: 0.875rem;">▪ ${bp.title} ${bp.statuteRef ? `<span style="font-size: 0.75rem; color: #BC9C53; font-family: monospace;">(${bp.statuteRef})</span>` : ""}</strong>
+                                <p style="font-size: 0.825rem; color: #64748b; margin: 0.25rem 0 0 0; line-height: 1.5;">${bp.description}</p>
+                              </div>
+                            `).join("")}
+                          </div>
+                        ` : ""}
+                      </section>
+                    `).join("")}
+
+                    ${priorityDetail.relatedArticles.en.length > 0 ? `
+                      <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(6, 78, 59, 0.1);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #BC9C53; font-weight: bold; margin-bottom: 0.5rem;">CONNECTED RESEARCH & GUIDES</div>
+                        <h3 style="font-size: 1.5rem; font-family: serif; color: #064E3B; margin: 0 0 1.5rem 0;">Specialized Legal Publications for this Practice Area</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+                          ${priorityDetail.relatedArticles.en.map((art: any) => `
+                            <div style="padding: 1.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 2px;">
+                              <span style="display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #BC9C53; font-weight: bold; margin-bottom: 0.5rem;">${art.badge}</span>
+                              <h4 style="font-size: 1.1rem; font-family: serif; color: #064E3B; margin: 0 0 0.5rem 0;">
+                                <a href="/blog/${art.slug}/" style="color: #064E3B; text-decoration: none;">${art.title}</a>
+                              </h4>
+                              <p style="font-size: 0.8rem; color: #64748b; line-height: 1.5; margin-bottom: 0.75rem;">${art.description}</p>
+                              <a href="/blog/${art.slug}/" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; color: #BC9C53; text-decoration: none;">Read Article →</a>
+                            </div>
+                          `).join("")}
+                        </div>
+                      </div>
+                    ` : ""}
+
+                    ${priorityDetail.faqList.en.length > 0 ? `
+                      <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(6, 78, 59, 0.1);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #BC9C53; font-weight: bold; margin-bottom: 0.5rem;">LEGAL FAQ</div>
+                        <h3 style="font-size: 1.5rem; font-family: serif; color: #064E3B; margin: 0 0 1.5rem 0;">Frequently Addressed Matters</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                          ${priorityDetail.faqList.en.map((faq: any) => `
+                            <div style="padding: 1.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 2px;">
+                              <h4 style="font-size: 0.95rem; font-weight: bold; color: #064E3B; margin: 0 0 0.5rem 0;">${faq.question}</h4>
+                              <p style="font-size: 0.85rem; color: #475569; line-height: 1.6; margin: 0;">${faq.answer}</p>
+                            </div>
+                          `).join("")}
+                        </div>
+                      </div>
+                    ` : ""}
+                  </div>
+                ` : ""}
                 
                 <div class="mt-12 bg-white p-8 border border-brand-navy/5 rounded-sm shadow-sm">
                   <h3 class="text-2xl font-serif text-brand-navy mb-4">Our Methodology</h3>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, Upload, AlertCircle, Plus, Check, User, Image as ImageIcon, Search, Sparkles, Code, Eye, Calendar, Tag, Clock, Type, BookOpen, Layers, MapPin } from 'lucide-react';
+import { X, Save, Upload, AlertCircle, Plus, Check, User, Image as ImageIcon, Search, Sparkles, Code, Eye, Calendar, Tag, Clock, Type, BookOpen, Layers, MapPin, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
 import { collection, addDoc, doc, setDoc, query, getDocs } from 'firebase/firestore';
 import { BlogPost, TeamMember, Service } from '../types';
@@ -156,6 +156,80 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
   const selectedAuthor = React.useMemo(() => {
     return teamMembers.find(m => m.id === formData.authorId) || teamMembers.find(m => m.id === 'resen-legal');
   }, [teamMembers, formData.authorId]);
+
+  // Real-time pre-publish SEO & Heading Quality Audit
+  const seoAudit = React.useMemo(() => {
+    const hasTitle = Boolean(formData.title && formData.title.trim());
+    const titleLength = (formData.title || '').trim().length;
+    const isTitleOptimal = titleLength >= 30 && titleLength <= 70;
+
+    const hasH1InBody = /<h1[\s>]/i.test(formData.content || '');
+
+    let h2Count = 0;
+    let h3Count = 0;
+    previewHeadings.forEach(h => {
+      if (h.level === 'h2') h2Count++;
+      if (h.level === 'h3') h3Count++;
+    });
+    const hasSubheadings = h2Count > 0;
+
+    const descLength = (formData.seoMeta || '').trim().length;
+    const isDescIdeal = descLength >= 120 && descLength <= 165;
+    const hasDesc = descLength > 0;
+
+    const computedSlug = generateSlug(formData.slug || formData.title);
+    const hasSlug = Boolean(computedSlug && computedSlug.trim() && !/^\d+$/.test(computedSlug));
+
+    const hasCategory = Boolean(formData.category && formData.category.trim());
+    const hasImageAlt = Boolean(formData.imageAlt && formData.imageAlt.trim());
+    const hasImage = Boolean(formData.image && formData.image.trim());
+
+    // Word count check
+    const textOnly = (formData.content || '').replace(/<[^>]*>/g, '');
+    const wordCount = textOnly.split(/\s+/).filter(Boolean).length;
+    const isContentSubstantial = wordCount >= 250;
+
+    // Overall Score (0-100)
+    let score = 0;
+    if (hasTitle) score += 25;
+    if (hasSubheadings) score += 20;
+    if (hasDesc && isDescIdeal) score += 20; else if (hasDesc) score += 12;
+    if (hasSlug) score += 15;
+    if (hasCategory) score += 10;
+    if (hasImageAlt) score += 5;
+    if (isContentSubstantial) score += 5;
+
+    // Check if ready to publish
+    const criticalMissing: string[] = [];
+    if (!hasTitle) criticalMissing.push(i18n.language === 'tr' ? 'Makale Başlığı' : 'Article Title');
+    if (!hasCategory) criticalMissing.push(i18n.language === 'tr' ? 'Kategori' : 'Category');
+    if (!hasDesc) criticalMissing.push(i18n.language === 'tr' ? 'Meta Açıklama' : 'Meta Description');
+    if (!hasSlug) criticalMissing.push(i18n.language === 'tr' ? 'Geçerli URL Slug' : 'Valid URL Slug');
+    if (wordCount < 50) criticalMissing.push(i18n.language === 'tr' ? 'Yeterli İçerik' : 'Sufficient Content');
+
+    return {
+      hasTitle,
+      titleLength,
+      isTitleOptimal,
+      hasH1InBody,
+      h2Count,
+      h3Count,
+      hasSubheadings,
+      descLength,
+      isDescIdeal,
+      hasDesc,
+      computedSlug,
+      hasSlug,
+      hasCategory,
+      hasImageAlt,
+      hasImage,
+      wordCount,
+      isContentSubstantial,
+      score: Math.min(100, score),
+      criticalMissing,
+      isReady: criticalMissing.length === 0
+    };
+  }, [formData.title, formData.content, formData.seoMeta, formData.slug, formData.category, formData.imageAlt, formData.image, previewHeadings, i18n.language]);
 
   useEffect(() => {
     // Check if there's an existing draft backup when opening the modal
@@ -1757,6 +1831,211 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                   </div>
                 </div>
               )}
+
+              {/* Pre-Publish SEO & Heading Quality Control Card */}
+              <div className="bg-white border border-brand-navy/10 rounded-sm shadow-xs overflow-hidden">
+                <div className="bg-brand-navy/[0.03] border-b border-brand-navy/10 p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-5 h-5 text-brand-gold shrink-0" />
+                    <div>
+                      <h5 className="text-xs uppercase tracking-widest font-black text-brand-navy flex items-center gap-2">
+                        {i18n.language === 'tr' ? 'Yayın Öncesi SEO & Başlık Kalite Kontrolü' : 'Pre-Publish SEO & Heading Quality Guard'}
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          seoAudit.score >= 85 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : seoAudit.score >= 60 
+                            ? 'bg-amber-100 text-amber-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          SEO: %{seoAudit.score} {seoAudit.score >= 85 ? (i18n.language === 'tr' ? 'Kusursuz' : 'Optimal') : (i18n.language === 'tr' ? 'Geliştirilebilir' : 'Needs Review')}
+                        </span>
+                      </h5>
+                      <p className="text-[10px] text-brand-navy/55 font-light mt-0.5">
+                        {i18n.language === 'tr' 
+                          ? 'Makale yayınlanmadan önce H1/H2 hiyerarşisi, meta etiketler ve SEO standartları anlık denetlenir.' 
+                          : 'Live automated verification of H1/H2 hierarchy, meta tags, and SEO standards before publishing.'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Visual Status Indicator */}
+                  <div className="flex items-center gap-2">
+                    {seoAudit.isReady ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-sm text-[10px] font-bold uppercase tracking-wider">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        {i18n.language === 'tr' ? 'Yayına Hazır' : 'Ready to Publish'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-sm text-[10px] font-bold uppercase tracking-wider">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        {i18n.language === 'tr' ? 'Eksik Alanlar Var' : 'Action Required'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                  {/* 1. H1 & Title Card */}
+                  <div className="p-3.5 rounded-sm border bg-[#faf9f6]/70 border-brand-navy/5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-brand-navy flex items-center gap-1.5">
+                        <Type className="w-3.5 h-3.5 text-brand-gold" />
+                        {i18n.language === 'tr' ? 'Sayfa Ana Başlığı (H1)' : 'Page Main Title (H1)'}
+                      </span>
+                      {seoAudit.hasTitle ? (
+                        <span className="text-emerald-600 text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> {i18n.language === 'tr' ? 'Onaylandı' : 'Verified'}
+                        </span>
+                      ) : (
+                        <span className="text-red-500 text-[10px] font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {i18n.language === 'tr' ? 'Eksik' : 'Missing'}
+                        </span>
+                      )}
+                    </div>
+                    {seoAudit.hasTitle ? (
+                      <p className="text-[11px] text-brand-navy/80 leading-relaxed font-serif line-clamp-1">
+                        "{formData.title}"
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-red-600 leading-relaxed">
+                        {i18n.language === 'tr' ? 'Sayfada H1 oluşması için ana başlık zorunludur.' : 'Main title is required for page H1.'}
+                      </p>
+                    )}
+                    <p className="text-[9.5px] text-brand-navy/50 font-light">
+                      {i18n.language === 'tr' 
+                        ? 'Bu başlık canlı sitede ve Googlebot için tekil <h1> olarak otomatik üretilir.' 
+                        : 'Rendered automatically as the canonical <h1> for search engines and visitors.'}
+                    </p>
+                  </div>
+
+                  {/* 2. Body Heading Hierarchy (H1 & H2 Guard) */}
+                  <div className="p-3.5 rounded-sm border bg-[#faf9f6]/70 border-brand-navy/5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-brand-navy flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-brand-gold" />
+                        {i18n.language === 'tr' ? 'Gövde Başlık Hiyerarşisi' : 'Body Headings Hierarchy'}
+                      </span>
+                      {!seoAudit.hasH1InBody && seoAudit.hasSubheadings ? (
+                        <span className="text-emerald-600 text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> {i18n.language === 'tr' ? 'İdeal' : 'Optimal'}
+                        </span>
+                      ) : (
+                        <span className="text-amber-600 text-[10px] font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {seoAudit.hasH1InBody ? (i18n.language === 'tr' ? 'H1 Otomatik Düzeltilecek' : 'Auto-adjust H1') : (i18n.language === 'tr' ? 'H2 Önerilir' : 'H2 Recommended')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      {seoAudit.hasH1InBody ? (
+                        <p className="text-[10.5px] text-amber-800 leading-relaxed bg-amber-50/80 p-2 rounded-xs border border-amber-200/60">
+                          {i18n.language === 'tr'
+                            ? '⚠️ Gövdede H1 tespit edildi. Çift H1 (Duplicate H1) SEO cezası oluşmaması için kaydetme sırasında otomatik olarak H2\'ye çevrilecektir.'
+                            : '⚠️ Body H1 detected. Will be automatically converted to H2 upon save to maintain single H1 hierarchy.'}
+                        </p>
+                      ) : (
+                        <p className="text-[10.5px] text-emerald-700 leading-relaxed">
+                          {i18n.language === 'tr'
+                            ? '✓ Gövdede fazladan H1 yok. Sayfa tekil H1 kuralına tam uyumludur.'
+                            : '✓ No conflicting body H1. Complies with single H1 standard.'}
+                        </p>
+                      )}
+
+                      <p className="text-[9.5px] text-brand-navy/60 font-light">
+                        {seoAudit.h2Count > 0 ? (
+                          <span>
+                            {i18n.language === 'tr' 
+                              ? `İçerikte ${seoAudit.h2Count} adet H2 ve ${seoAudit.h3Count} adet H3 alt başlık bulundu. "İçindekiler" tablosu eksiksiz çalışacaktır.` 
+                              : `Found ${seoAudit.h2Count} H2 and ${seoAudit.h3Count} H3 subheadings. Table of contents will be generated seamlessly.`}
+                          </span>
+                        ) : (
+                          <span className="text-amber-700">
+                            {i18n.language === 'tr' 
+                              ? 'ℹ️ Henüz H2 alt başlık eklenmedi. Okunabilirlik için alt başlık kullanmanız tavsiye edilir.' 
+                              : 'ℹ️ No H2 subheadings found yet. Adding H2 subheadings improves readability.'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 3. Meta Description Check */}
+                  <div className="p-3.5 rounded-sm border bg-[#faf9f6]/70 border-brand-navy/5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-brand-navy flex items-center gap-1.5">
+                        <Search className="w-3.5 h-3.5 text-brand-gold" />
+                        {i18n.language === 'tr' ? 'Arama Açıklaması (Meta Description)' : 'Meta Description'}
+                      </span>
+                      {seoAudit.isDescIdeal ? (
+                        <span className="text-emerald-600 text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> {seoAudit.descLength} / 160
+                        </span>
+                      ) : seoAudit.hasDesc ? (
+                        <span className="text-amber-600 text-[10px] font-bold flex items-center gap-1">
+                          {seoAudit.descLength} / 160
+                        </span>
+                      ) : (
+                        <span className="text-red-500 text-[10px] font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {i18n.language === 'tr' ? 'Eksik' : 'Missing'}
+                        </span>
+                      )}
+                    </div>
+                    {seoAudit.hasDesc ? (
+                      <p className="text-[10.5px] text-brand-navy/70 line-clamp-1 italic">
+                        "{formData.seoMeta}"
+                      </p>
+                    ) : (
+                      <p className="text-[10.5px] text-red-600">
+                        {i18n.language === 'tr' ? 'Meta açıklama girilmedi (Arama sonuçlarında tıklanma için zorunlu).' : 'Meta description missing.'}
+                      </p>
+                    )}
+                    <p className="text-[9.5px] text-brand-navy/50 font-light">
+                      {seoAudit.isDescIdeal 
+                        ? (i18n.language === 'tr' ? '✓ Google snippet standartları için ideal uzunlukta (120-165 karakter).' : '✓ Optimal length for search snippets.')
+                        : (i18n.language === 'tr' ? 'Öneri: 120-165 karakter arası arama sonuçlarında tam görünür.' : 'Recommended: 120-165 characters.')}
+                    </p>
+                  </div>
+
+                  {/* 4. URL Slug & Indexing Guard */}
+                  <div className="p-3.5 rounded-sm border bg-[#faf9f6]/70 border-brand-navy/5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-brand-navy flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-brand-gold" />
+                        {i18n.language === 'tr' ? 'Kalıcı Bağlantı (Slug) & İndeks' : 'Canonical Slug & Indexing'}
+                      </span>
+                      {seoAudit.hasSlug ? (
+                        <span className="text-emerald-600 text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> {i18n.language === 'tr' ? 'Temiz URL' : 'Clean URL'}
+                        </span>
+                      ) : (
+                        <span className="text-red-500 text-[10px] font-bold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {i18n.language === 'tr' ? 'Geçersiz' : 'Invalid'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-[10.5px] text-brand-navy/80 truncate">
+                      /blog/{seoAudit.computedSlug || '...'}/
+                    </p>
+                    <p className="text-[9.5px] text-brand-navy/50 font-light">
+                      {i18n.language === 'tr' 
+                        ? 'Yayınlandığı anda sitemap.xml ve Google indeksleme yapısına bu adresle girer.' 
+                        : 'Will be added to sitemap.xml and Google index under this permanent canonical URL.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Critical Missing Warning Banner if trying to publish with missing essentials */}
+                {seoAudit.criticalMissing.length > 0 && formData.status === 'published' && (
+                  <div className="bg-amber-50 border-t border-amber-200/80 px-4 py-2.5 sm:px-6 flex items-center gap-2 text-[10.5px] text-amber-900">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>
+                      {i18n.language === 'tr' 
+                        ? `Yayına almadan önce tamamlanması gereken alanlar: ${seoAudit.criticalMissing.join(', ')}.` 
+                        : `Fields requiring attention before live publication: ${seoAudit.criticalMissing.join(', ')}.`}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {/* Publication Mode & Scheduling Section */}
               <div className="bg-brand-offwhite/80 p-5 sm:p-6 border border-brand-navy/10 rounded-sm space-y-4">
