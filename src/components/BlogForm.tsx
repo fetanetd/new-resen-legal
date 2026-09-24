@@ -7,7 +7,7 @@ import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
 import { collection, addDoc, doc, setDoc, query, getDocs } from 'firebase/firestore';
 import { BlogPost, TeamMember, Service } from '../types';
 import { TEAM as MOCK_TEAM, SERVICES as MOCK_SERVICES, BLOG_POSTS as MOCK_BLOGS } from '../constants/mockData';
-import { getCategoryTranslation } from '../lib/utils';
+import { getCategoryTranslation, generateSlug } from '../lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -295,24 +295,6 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
   const handleDiscardBackup = () => {
     localStorage.removeItem('resen_blog_temp_backup');
     setHasBackup(false);
-  };
-
-  const generateSlug = (text: string) => {
-    return text
-      .toString()
-      .toLowerCase()
-      .replace(/[\s_]+/g, '-') // Replace spaces and underscores with -
-      .replace(/[çışğöüıÇİŞĞÖÜİ]/g, char => {
-        const trMap: Record<string, string> = {
-          'ç': 'c', 'ı': 'i', 'ş': 's', 'ğ': 'g', 'ö': 'o', 'ü': 'u',
-          'Ç': 'C', 'İ': 'I', 'Ş': 'S', 'Ğ': 'G', 'Ö': 'O', 'Ü': 'U'
-        };
-        return trMap[char] || char;
-      })
-      .replace(/[^\w\-]+/g, '') // Remove all non-word chars except -
-      .replace(/\-\-+/g, '-') // Replace multiple - with single -
-      .replace(/^-+/, '') // Trim - from start
-      .replace(/-+$/, ''); // Trim - from end
   };
 
   const convertH1ToH2 = (html: string): { converted: string; hadH1: boolean } => {
