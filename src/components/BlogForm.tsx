@@ -709,7 +709,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         imageAlt: '',
         metaTitle: '',
         status: 'published',
-        publishAt: defaultPublishAt
+        publishAt: ''
       });
       setSeoResult(null);
     }
@@ -859,7 +859,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
         image: formData.image,
         category: formData.category,
         authorId: formData.authorId,
-        date: formData.publishAt ? formData.publishAt.split('T')[0] : formData.date,
+        date: (isScheduled && formData.publishAt) ? formData.publishAt.split('T')[0] : (formData.date || new Date().toISOString().split('T')[0]),
         seoMeta: formData.seoMeta || '',
         seoKeywords: formData.seoKeywords || '',
         status: resolvedStatus,
