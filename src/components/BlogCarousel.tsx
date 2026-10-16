@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { BlogPost, TeamMember } from '../types';
 import { useFirestoreCollectionOnce } from '../hooks/useFirestoreData';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
-import { getTranslation, getPostSlug, getCategoryTranslation, findTeamMember, isPostPublished } from '../lib/utils';
+import { getTranslation, getPostSlug, getCategoryTranslation, findTeamMember, isPostPublished, formatDateNumeric } from '../lib/utils';
 
 export default function BlogCarousel() {
   const { t, i18n } = useTranslation();
@@ -137,7 +137,7 @@ export default function BlogCarousel() {
 
                       <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-brand-navy/40 mb-6">
                         <Calendar className="w-3 h-3 text-brand-gold" />
-                        {new Date(post.date).toLocaleDateString(i18n.language === 'en' ? 'en-GB' : i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {formatDateNumeric(post.date)}
                       </div>
 
                       <h3 className="text-xl font-serif text-brand-navy mb-4 group-hover:text-brand-gold transition-colors leading-relaxed line-clamp-2">

@@ -7,7 +7,7 @@ import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
 import { collection, addDoc, doc, setDoc, query, getDocs } from 'firebase/firestore';
 import { BlogPost, TeamMember, Service } from '../types';
 import { TEAM as MOCK_TEAM, SERVICES as MOCK_SERVICES, BLOG_POSTS as MOCK_BLOGS } from '../constants/mockData';
-import { getCategoryTranslation, generateSlug } from '../lib/utils';
+import { getCategoryTranslation, generateSlug, formatDateNumeric } from '../lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -2409,7 +2409,7 @@ export default function BlogForm({ isOpen, onClose, initialData }: BlogFormProps
                         <div className="flex flex-wrap items-center justify-center gap-4 text-brand-offwhite/70">
                           <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-semibold">
                             <Calendar className="w-3.5 h-3.5 text-brand-gold" />
-                            {new Date(formData.date).toLocaleDateString(formData.language === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {formatDateNumeric(formData.date)}
                           </div>
                           <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-semibold">
                             <Clock className="w-3.5 h-3.5 text-brand-gold" />

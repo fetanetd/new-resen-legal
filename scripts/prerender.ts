@@ -223,6 +223,21 @@ async function main() {
     return cat;
   };
 
+  const formatDateNumeric = (dateStr?: string): string => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}.${month}.${year}`;
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   const distPath = path.join(process.cwd(), "dist");
   const templatePath = path.join(distPath, "index.html");
 
@@ -526,7 +541,7 @@ async function main() {
       <div style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
         <h1 style="font-size: 2.5rem; font-weight: bold; line-height: 1.2; margin-bottom: 1rem; color: #0f172a;">${postTitle}</h1>
         <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
-          <span>Date: ${postDate}</span> | <span>Category: ${postCategory}</span>
+          <span>Date: ${formatDateNumeric(postDate)}</span> | <span>Category: ${postCategory}</span>
         </div>
         <div style="font-size: 1.125rem; line-height: 1.75; color: #334155;">
           ${postContent}
@@ -1353,7 +1368,7 @@ async function main() {
                       <div>
                         <div class="flex items-center justify-between gap-2 mb-3">
                           <span class="text-brand-gold text-[10px] uppercase tracking-wider font-bold">${pCat}</span>
-                          <time class="text-gray-400 text-xs">${pDate}</time>
+                          <time class="text-gray-400 text-xs">${formatDateNumeric(pDate)}</time>
                         </div>
                         <h3 class="text-xl font-serif text-brand-navy mb-3 leading-snug">
                           <a href="/blog/${pSlug}/" class="text-brand-navy hover:text-brand-gold transition-colors">${pTitle}</a>

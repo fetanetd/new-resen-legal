@@ -10,7 +10,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { isAdminEmail } from '../constants/auth';
 import { BlogPost, TeamMember } from '../types';
 import { BLOG_POSTS as MOCK_BLOG, TEAM as MOCK_TEAM } from '../constants/mockData';
-import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember, isPostPublished } from '../lib/utils';
+import { getTranslation, getCategoryTranslation, getPostSlug, findTeamMember, isPostPublished, formatDateNumeric } from '../lib/utils';
 import { useFirestoreCollection } from '../hooks/useFirestoreData';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -1071,7 +1071,7 @@ export default function BlogPostDetail() {
               >
                 <div className="flex items-center gap-1.5 text-[10px] md:text-xs uppercase tracking-widest font-semibold">
                   <Calendar className="w-3.5 h-3.5 text-brand-gold" />
-                  {new Date(post.date).toLocaleDateString(i18n.language === 'en' ? 'en-GB' : i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {formatDateNumeric(post.date)}
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] md:text-xs uppercase tracking-widest font-semibold">
                   <Clock className="w-3.5 h-3.5 text-brand-gold" />
