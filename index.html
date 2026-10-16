@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <script>
+      // In AI Studio iframe environments, WebSockets are disabled.
+      // Suppress Vite client's expected "WebSocket closed without opened" unhandled rejection.
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event && event.reason;
+        var msg = (reason && (reason.message || reason.stack || String(reason))) || '';
+        if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('vite:ws') !== -1 || msg.indexOf('without opened') !== -1) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      });
+    </script>
+    
     <!-- Google Analytics (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1W7XZV8KX7"></script>
     <script>
