@@ -415,6 +415,36 @@ export default function BlogPostDetail() {
       }
     });
 
+    // Clean up inline pasted styles on text elements, while preserving heading typography (like 34px on first H2 and 24px on section H2s)
+    const styledInlines = Array.from(div.querySelectorAll('span, p, h2, h3, h4, h5, h6, li, td, th, ol, ul, a'));
+    styledInlines.forEach((el) => {
+      const isHeading = /^H[1-6]$/i.test(el.tagName);
+      const existingStyle = el.getAttribute('style') || '';
+      if (existingStyle) {
+        let cleanedStyle = existingStyle
+          .replace(/background(-color)?\s*:[^;]+;?/gi, '')
+          .replace(/color\s*:\s*(rgb\(0,\s*0,\s*0\)|#000000|black);?/gi, '');
+        
+        // Only strip font-size and line-height overrides on body text (spans, p, li), preserve heading sizes like 34px / 24px
+        if (!isHeading) {
+          cleanedStyle = cleanedStyle
+            .replace(/font-size\s*:\s*\d+(\.\d+)?(px|pt);?/gi, '')
+            .replace(/line-height\s*:[^;]+;?/gi, '')
+            .replace(/font-family\s*:[^;]+;?/gi, '');
+        }
+        
+        cleanedStyle = cleanedStyle.trim();
+        if (cleanedStyle) {
+          el.setAttribute('style', cleanedStyle);
+        } else {
+          el.removeAttribute('style');
+        }
+      }
+    });
+
+    // Replace non-breaking spaces that break word wrapping
+    div.innerHTML = div.innerHTML.replace(/&nbsp;/g, ' ');
+
     // Scope any potentially leaking style tags to .article-content to protect standard page layout/header
     const styleTags = Array.from(div.querySelectorAll('style'));
     styleTags.forEach((styleTag) => {
@@ -835,6 +865,12 @@ export default function BlogPostDetail() {
         .article-content a:not([class*="heading"]) {
           font-size: var(--article-font-size, 14px) !important;
           line-height: 1.75 !important;
+        }
+
+        .article-content span {
+          background: transparent !important;
+          background-color: transparent !important;
+          color: inherit !important;
         }
 
         @media print {

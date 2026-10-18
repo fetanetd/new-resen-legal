@@ -332,7 +332,11 @@ async function main() {
     const postLang = (post.language || "tr").toLowerCase().startsWith("en") ? "en" : "tr";
     const postTitle = getServerTranslation(post.title, postLang, post.language);
     const postExcerpt = getServerTranslation(post.excerpt, postLang, post.language);
-    const postContent = getServerTranslation(post.content, postLang, post.language);
+    const rawPostContent = getServerTranslation(post.content, postLang, post.language);
+    const postContent = (rawPostContent || "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/style="[^"]*background[^"]*"/gi, "")
+      .replace(/style="[^"]*font-family[^"]*"/gi, "");
 
     const getPrerenderCategory = (cat: string | undefined, lang: string): string => {
       if (!cat) return lang === "tr" ? "Hukuki Analizler" : "Legal Insights";
